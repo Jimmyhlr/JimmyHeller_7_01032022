@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width">
+        <!--<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.3/css/all.css" integrity="sha384-SZXxX4whJ79/gErwcOYf+zWLeJdY/qpuqC4cAa9rOGUstPomtqpuNWT9wdPEn2fk" crossorigin="anonymous">-->
+        <!-- STYLES -->
+        <style>
+            body {
+                max-width: 2000px;
+                margin: 0;
+                padding: 0;
+                font-family: Arial, Helvetica, sans-serif;
+            }
+            header {
+                background-color: rgb(0, 12, 78);
+                padding: 0;
+                margin: 0;
+                margin-bottom: 2em;
+                height: 7em;
+            }
+            #logo__groupomania {
+                position: relative;
+                top: -6.5em;
+                width: 20em;
+                padding: 0;
+                margin-left: 1em;
+            }
+            main {
+                margin: 1em;
+                text-align: center;
+                height: 30em;
+            }
+            #main {
+                box-shadow: 0px 0px 22px 0px rgba(0,0,0,0.79);
+                width: 70%;
+                max-width: 40em;
+                padding-top: 2em;
+                border-radius: 1em;
+                display: inline-block;
+                position: relative;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+            #login__form {
+                text-align: center;
+                margin-top: 2.5em;
+                margin-bottom: 2.5em;
+            }
+            .login__form {
+                margin: 1em;
+            }
+            input {
+                height: 3em;
+                width: 50%;
+                border-radius: 0.5em;
+                border: 0.05em solid black;
+                box-shadow: 0px 0px 22px 0px rgba(0,0,0,0.24);
+            }
+            ::placeholder {
+                text-align: center;
+            }
+            #connexion__button {
+                color: white;
+                background-color: rgb(0, 12, 78);
+                border-radius: 0.5em;
+                border: none;
+                transition: transform 0.2s;
+            }
+            #connexion__button:hover {
+                transform: scale(1.03);
+            }
+            #redirection {
+                line-height: 0.5em;
+                margin-bottom: 2em;
+            }
+            #redirection__link {
+                text-decoration: none;
+                color: rgb(78, 76, 214);
+            }
+            #redirection__link:hover {
+                color: rgb(45, 43, 161);
+                font-weight: bold;
+            }
+            #redirection__link {
+                color: rgb(45, 43, 161);
+            }
+
+        </style>
+        <!-- STYLES - END -->
+        <title>Groupomania</title>
+    </head>
+    <body>
+        <header>
+            <div id="header__div">
+                <a href="#"><img src="./images/icon-left-font-monochrome-white.png" alt="logo Groupomania" id="logo__groupomania"></a>
+            </div>
+        </header>
+        <main>
+            <div id="main">
+                <form action="" method="get" id="login__form">
+                    <div class="login__form">
+                      <input type="email" name="email" placeholder="Adresse e-mail" id="login__form__email" required>
+                    </div>
+                    <div class="login__form">
+                      <input type="text" name="password" placeholder="Mot de passe" id="login__form__password" required>
+                    </div>
+                    <div class="login__form">
+                      <input type="submit" value="Connexion" id="connexion__button">
+                    </div>
+                </form>
+                <div id="redirection">
+                    <p>Pas encore de compte ?</p>
+                    <a href="./register.html" id="redirection__link"><p>Inscrivez-vous !</p></a>
+                </div>
+            </div>
+        </main>
+        <footer>
+            
+        </footer>
+
+        <!--scripts-->
+        <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+        <script>
+            const app = new Vue({
+                el: "#login__form",
+                data: {
+                    message: "Bonjour"
+                },
+            });
+        </script>
+        <!--scripts-->
+    </body>
+</html>
