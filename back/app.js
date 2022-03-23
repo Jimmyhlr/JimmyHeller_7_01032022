@@ -1,21 +1,9 @@
 const express = require('express'); // importation du framework Express
 const path = require('path');
-const mysql = require('mysql');
 /*const feedRoutes = require('./routes/feed');*/
 const userRoutes = require('./routes/user');
 
 const app = express(); // crée une application Express
-
-const database = mysql.createConnection({
-    host     : 'localhost',
-    user     : 'JimmyHeller',
-    password : '4z4gpa0301JH!',
-    database : 'Groupomania'
-});
-
-database.connect(function(err) {
-  if (err) throw err;
-});
 
 app.use(express.json());
 // middleware du framework Express => permet d'extraire le corps JSON d'une requête POST venant du front-end

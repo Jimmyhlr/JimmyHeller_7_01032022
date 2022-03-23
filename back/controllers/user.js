@@ -1,6 +1,6 @@
 const bcrypt = require('bcrypt'); // importe le module "bcrypt" => cryptage de mdp, installé avec npm install --save bcrypt
 const jwt = require('jsonwebtoken'); // importe le module "jsonwebtoken" => création de token d'authentification, installé avec npm install --save jsonwebtoken
-
+const database = require('../middleware/database');
 
 
 exports.signup = (req, res, next) => {
@@ -21,8 +21,9 @@ exports.signup = (req, res, next) => {
 
 
 exports.login = (req, res, next) => {
+    console.log(req.body);
     let reqEmail = req.body.email;
-    let sql = `SELECT password FROM user WHERE email = `+ reqEmail + `;`
+    let sql = `SELECT password FROM user WHERE email = '`+ reqEmail + `';`
     database.query(sql, function (err, result, fields) {
         if (err) throw err;
         if (!result.password) {
