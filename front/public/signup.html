@@ -72,6 +72,8 @@
             #form__button {
                 color: white;
                 background-color: rgb(0, 12, 78);
+                width: 25%;
+                min-width: 9em;
                 border-radius: 0.5em;
                 border: none;
                 cursor: pointer;
@@ -114,16 +116,13 @@
             <div id="main">
                 <form action="" method="get" id="signup__form">
                     <div class="signup__form">
-                        <input type="text" autocomplete="off" name="name" placeholder="Nom" id="signup__form__name" required>
-                    </div>
-                    <div class="signup__form">
-                        <input type="text" autocomplete="off" name="firstname" placeholder="Prénom" id="signup__form__firstname" required>
-                    </div>
-                    <div class="signup__form">
-                        <input type="email" autocomplete="off" name="email" placeholder="Adresse e-mail" id="signup__form__email" required>
+                        <input type="text" autocomplete="off" name="username" placeholder="Nom d'utilisateur" id="signup__form__username" required>
                     </div>
                     <div class="signup__form">
                         <input type="password" name="password" placeholder="Mot de passe" id="signup__form__password" required>
+                    </div>
+                    <div class="signup__form">
+                        <input type="password" name="password_repeat" placeholder="Validation du mot de passe" id="signup__form__password_repeat" required>
                     </div>
                     <div class="signup__form">
                         <input type="button" value="Inscription" id="form__button">
@@ -144,27 +143,26 @@
         <script>
             const signupButton = document.getElementById('form__button');
             function signup() {
-                const name = document.getElementById("signup__form__name").value;
-                const firstname = document.getElementById("signup__form__firstname").value;
-                const email = document.getElementById("signup__form__email").value;
+                const username = document.getElementById("signup__form__username").value;
                 const password = document.getElementById("signup__form__password").value;
-                console.log('fonction signup', name, firstname, email, password);
+                const password_repeat = document.getElementById("signup__form__password_repeat").value;
+                console.log('fonction signup', username, password, password_repeat);
                     fetch("http://localhost:3000/api/auth/signup", {
                         method: "POST",
                         headers: {
                             Accept: "application/json",
                             "Content-Type": "application/json",
                         },
-                        body: JSON.stringify({ name, firstname, email, password })
+                        body: JSON.stringify({ username, password, password_repeat })
                     })
                     .then(function (res) {
                         console.log(res);
                         if (res.ok) {
                             return res.json();
-                        }
+                        }/*
                         else if (res.status === 401) {
                             // ajouter message d'erreur implémenté dans le html
-                        }
+                        }*/
                     })
                     .then(function (connexion) {
                         window.location.replace("./index.html");

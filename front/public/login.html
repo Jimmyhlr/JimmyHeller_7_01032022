@@ -72,6 +72,8 @@
             #form__button {
                 color: white;
                 background-color: rgb(0, 12, 78);
+                width: 25%;
+                min-width: 9em;
                 border-radius: 0.5em;
                 border: none;
                 cursor: pointer;
@@ -111,21 +113,23 @@
             </div>
         </header>
         <main>
-            <div id="main">
-                <form action="" method="get" id="login__form">
-                    <div class="login__form">
-                      <input type="email" autocomplete="off" name="email" placeholder="Adresse e-mail" id="login__form__email" required>
+            <div id="app">
+                <div id="main">
+                    <form action="" method="get" id="login__form">
+                        <div class="login__form">
+                          <input type="text" autocomplete="off" name="username" placeholder="Nom d'utilisateur" id="login__form__username" required>
+                        </div>
+                        <div class="login__form">
+                          <input type="password" name="password" placeholder="Mot de passe" id="login__form__password" required>
+                        </div>
+                        <div class="login__form">
+                          <input type="button" value="Connexion" id="form__button" @click="loginValidation()">
+                        </div>
+                    </form>
+                    <div id="redirection">
+                        <p>Pas encore de compte ?</p>
+                        <a href="./signup.html" id="redirection__link"><p>Inscrivez-vous !</p></a>
                     </div>
-                    <div class="login__form">
-                      <input type="password" name="password" placeholder="Mot de passe" id="login__form__password" required>
-                    </div>
-                    <div class="login__form">
-                      <input type="button" value="Connexion" id="form__button">
-                    </div>
-                </form>
-                <div id="redirection">
-                    <p>Pas encore de compte ?</p>
-                    <a href="./signup.html" id="redirection__link"><p>Inscrivez-vous !</p></a>
                 </div>
             </div>
         </main>
@@ -135,28 +139,42 @@
 
         <!--scripts-->
         <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+
         <script>
+/*
+            const app = new Vue({
+                el: '#app',
+                data: {
+
+                }
+            }) 
+*/
+
             const loginButton = document.getElementById('form__button');
             function login() {
-                const email = document.getElementById("login__form__email").value;
+                const username = document.getElementById("login__form__username").value;
                 const password = document.getElementById("login__form__password").value;
-                console.log('fonction login', email, password);
-                    fetch("http://localhost:3000/api/auth/login", {
-                        method: "POST",
-                        headers: {
-                            Accept: "application/json",
-                            "Content-Type": "application/json",
+                console.log('fonction login', username, password);
+                fetch("http://localhost:3000/api/auth/login", {
+                    method: "POST",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json",
                         },
-                        body: JSON.stringify({ email, password })
+                    body: JSON.stringify({ username, password })
                     })
                     .then(function (res) {
-                        console.log(res);
                         if (res.ok) {
-                            return res.json();
-                        }
+                            return res.json()
+                            .then(function (resJson) {
+                                console.log(resJson);
+                                const token = resJson.token;
+                                window.localStorage.setItem('token', token);
+                            })
+                        }/*
                         else if (res.status === 401) {
                             // ajouter message d'erreur implémenté dans le html
-                        }
+                        }*/
                     })
                     .then(function (connexion) {
                         window.location.replace("./index.html");

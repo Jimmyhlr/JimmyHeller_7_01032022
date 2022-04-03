@@ -3,26 +3,170 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width">
+        <link rel="shortcut icon" type="image/png" href="./images/icon.png">
         <!--<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.3/css/all.css" integrity="sha384-SZXxX4whJ79/gErwcOYf+zWLeJdY/qpuqC4cAa9rOGUstPomtqpuNWT9wdPEn2fk" crossorigin="anonymous">-->
         <!-- STYLES -->
-        <!--<link rel="stylesheet" href="../sass/main.css" />-->
-        <!-- SCRIPTS -->
+        <style>
+            body {
+                background-image: url(./images/screenshot_groupomania.png);
+                background-size: cover;
+                background-repeat: no-repeat;
+                background-position: center;
+                max-width: 2000px;
+                
+                margin: 0;
+                padding: 0;
+                font-family: Arial, Helvetica, sans-serif;
+            }
+            header {
+                background-color: rgba(1, 10, 59, 0.89);
+                height: 7em;
+            }
+            #logo__groupomania {
+                position: relative;
+                top: -6.5em;
+                width: 20em;
+                padding: 0;
+                margin-left: 2em;
+            }
+            main {
+                padding-top: 2em;
+                text-align: center;
+                height: 35em;
+            }
+            #main {
+                background-color: white;
+                box-shadow: 0px 0px 22px 0px rgba(0,0,0,0.79);
+                height: 80%;
+                width: 70%;
+                max-width: 40em;
+                padding-top: 2em;
+                border-radius: 1em;
+                display: inline-block;
+                position: relative;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+            #login__form {
+                text-align: center;
+                margin-top: 2.5em;
+                margin-bottom: 2.5em;
+            }
+            .login__form {
+                margin: 1em;
+            }
+            input {
+                padding-left: 2em;
+                padding-right: 2em;
+                height: 3em;
+                width: 50%;
+                border-radius: 0.5em;
+                border: 0.05em solid black;
+                box-shadow: 0px 0px 22px 0px rgba(0,0,0,0.24);
+            }
+            ::placeholder {
+                text-align: center;
+            }
+            input:focus::placeholder {
+                color: transparent;
+            }
+            #form__button {
+                color: white;
+                background-color: rgb(0, 12, 78);
+                width: 25%;
+                min-width: 9em;
+                border-radius: 0.5em;
+                border: none;
+                cursor: pointer;
+                transition: transform 0.2s;
+            }
+            #form__button:hover {
+                transform: scale(1.03);
+            }
+            #redirection {
+                line-height: 0.5em;
+                margin-bottom: 2em;
+            }
+            #redirection__link, #redirection__link:hover  {
+                text-decoration: none;
+                color: rgb(78, 76, 214);
+            }
+            #redirection__link:hover {
+                font-weight: bold;
+            }
+            header {
+                background-color: rgba(1, 10, 59, 0.89);
+                height: 7em;
+            }
+            footer {
+                height: 5em;
+                background-color: rgba(0, 0, 0, 0.336);
+            }
+
+        </style>
+        <!-- STYLES - END -->
         <title>Groupomania</title>
     </head>
     <body>
-        <div id="app">
-            <h1>{{ message }}</h1>
-        </div>
+        <header>
+            <div id="header__div">
+                <img src="./images/icon-left-font-monochrome-white.png" alt="logo Groupomania" id="logo__groupomania">
+            </div>
+        </header>
+        <main>
+            <div id="main">
+                <div id="user__informations">
+                    <div id="user__name">Nom d'utilisateur</div>
+                </div>
+            </div>
 
+            
+
+        </main>
+        <footer>
+
+        </footer>
+
+        <!--scripts-->
         <script src="https://cdn.jsdelivr.net/npm/vue"></script>
         <script>
-            const app = new Vue({
-                el: "#app",
-                data: {
-                    message: "Bonjour"
-                },
+
+            /*import Bouton from '../components/bouton.vue'
+
+            export default {
+                name: 'App',
+                components: {
+                    bouton
+                }
+            }*/
+
+
+            // récupérer les infos du token et les stocker dans un cookie
+            // (le token de base est créé dans le back)
+
+            async function catchUserInformations() {
+                const token = window.localStorage.getItem('token');
+                const response = await fetch('http://localhost:3000/api/auth/userinfos', {
+                    method: 'GET',
+                    headers: {
+                        Accept: 'application/json',
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                        }
+                    });
+                const userInformations = await response.json();
+                console.table(userInformations);
+                const username = document.getElementById('user__name');
+                userInformations.forEach(key => {
+                    username.innerHTML = key.username;
+                });
+            };
+            
+            catchUserInformations().catch(error => {
+                console.log("Erreur lors du chargement des informations de l'utilisateur");
+                console.error(error);
             });
         </script>
-        
+        <!--scripts-->
     </body>
 </html>
