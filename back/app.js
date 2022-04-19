@@ -1,6 +1,6 @@
 const express = require('express'); // importation du framework Express
 const path = require('path');
-/*const feedRoutes = require('./routes/feed');*/
+const postRoutes = require('./routes/post');
 const userRoutes = require('./routes/user');
 
 const app = express(); // crée une application Express
@@ -23,7 +23,7 @@ app.use((req, res, next) => {
 
 app.use('/images', express.static(path.join(__dirname, 'images')));
 
-/*app.use('/api/feed', feedRoutes);*/
+app.use('/api/post', postRoutes);
 app.use('/api/auth', userRoutes);
 
 
