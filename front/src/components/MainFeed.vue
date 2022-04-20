@@ -92,12 +92,15 @@ export default {
                     const userLoggedIn = allPosts.user.username
                     let postContainer = "<h2>Fil d'actualité</h2><div>";
                     feed.forEach(key => {
+                        let creationDate = new Date(key.creation_date)
+                        let formatCreationDate = creationDate.getDate() + '/' + creationDate.getMonth() + '/' + creationDate.getFullYear()
+                        let formatCreationTime = creationDate.getHours() + ':' + creationDate.getMinutes()
                         if (userLoggedIn === key.username) {
                             postContainer += '<div class="message__and__comments" id="' + key.id + '">'
                             + '<div class="message">'
                             + '<div class="message__informations">'
                             + '<div class="message__username">' + key.username + '</div>'
-                            + '<div class="message__date">Posté le : ' + key.creation_date + '</div>'
+                            + '<div class="message__date">Posté le : ' + formatCreationDate + ' à ' + formatCreationTime + '</div>'
                             + '</div>'
                             + '<div class="message__text">' + key.post + '</div>'
                             + '<div class="message__buttons" id="message__buttons__' + key.id + '">'
@@ -112,7 +115,7 @@ export default {
                             + '<div class="message">'
                             + '<div class="message__informations">'
                             + '<div class="message__username">' + key.username + '</div>'
-                            + '<div class="message__date">Posté le : ' + key.creation_date + '</div>'
+                            + '<div class="message__date">Posté le : ' + formatCreationDate + ' à ' + formatCreationTime + '</div>'
                             + '</div>'
                             + '<div class="message__text">' + key.post + '</div>'
                             + '<div class="message__buttons" id="message__buttons__' + key.id + '">'
@@ -137,12 +140,15 @@ export default {
                     console.table(comments);
                     let commentsContainer = '<div>'
                     comments.forEach(key => {
+                        let creationDate = new Date(key.creation_date)
+                        let formatCreationDate = creationDate.getDate() + '/' + creationDate.getMonth() + '/' + creationDate.getFullYear()
+                        let formatCreationTime = creationDate.getHours() + ':' + creationDate.getMinutes()
                         if (userLoggedIn === key.username) {
                             commentsContainer += '<div class="comment">'
                             + '<div class="comment__informations">'
                             + '<div class="comment__username">' + key.username + '</div>'
                             + '<div hidden class="comment__id">' + key.id + '</div>'
-                            + '<div class="comment__date">Posté le : ' + key.creation_date + '</div>'
+                            + '<div class="comment__date">Posté le : ' + formatCreationDate + ' à ' + formatCreationTime + '</div>'
                             + '</div>'
                             + '<div class="comment__text">' + key.comment + '</div>'
                             + '<div class="comment__buttons" id="comment__buttons__' + key.id + '">'
@@ -155,7 +161,7 @@ export default {
                             + '<div class="comment__informations">'
                             + '<div class="comment__username">' + key.username + '</div>'
                             + '<div hidden class="comment__id">' + key.id + '</div>'
-                            + '<div class="comment__date">Posté le : ' + key.creation_date + '</div>'
+                            + '<div class="comment__date">Posté le : ' + formatCreationDate + ' à ' + formatCreationTime + '</div>'
                             + '</div>'
                             + '<div class="comment__text">' + key.comment + '</div>'
                             + '<div class="comment__buttons" id="comment__buttons__' + key.id + '">'
