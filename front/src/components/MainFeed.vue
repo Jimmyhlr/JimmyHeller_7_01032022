@@ -78,7 +78,7 @@ export default {
   },
   async mounted () {
                     const token = window.localStorage.getItem('token');
-                    const response = await fetch('http://localhost:3000/api/post/feed', {
+                    const messagesResponse = await fetch('http://localhost:3000/api/post/feed', {
                         method: 'GET',
                         headers: {
                             Accept: 'application/json',
@@ -86,40 +86,85 @@ export default {
                             'Authorization': `Bearer ${token}`,
                             }
                         });
-                    const allPosts = await response.json();
+                    const allPosts = await messagesResponse.json();
                     const feed = allPosts.result
                     console.table(feed);
+                    const userLoggedIn = allPosts.user.username
                     let postContainer = "<h2>Fil d'actualité</h2><div>";
                     feed.forEach(key => {
-                        let messageId = key.id;
-                        postContainer += '<div class="message__and__comments" id="' + key.id + '">'
-                        + '<div class="message">'
-                        + '<div class="message__informations">'
-                        + '<div class="message__username">' + key.username + '</div>'
-                        + '<div class="message__date">Posté le : ' + key.creation_date + '</div>'
-                        + '</div>'
-                        + '<div class="message__text">' + key.post + '</div>'
-                        + '<div class="message__buttons" id="message__buttons__' + key.id + '">'
-                        + '<div class="message__modify id="message__modify__' + key.id + '">Modifier</div>'
-                        + '<div class="message__delete id="message__delete__' + key.id + '">Supprimer</div>'
-                        + '</div>' 
-                        + '</div>';
-                        fetch('http://localhost:3000/api/post/getComments', {
-                            method: 'POST',
-                            Headers: {
-                                Accept: 'Application/json',
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${token}`
-                            },
-                            body: JSON.stringify({ messageId })
-                        })
-                        .then(function (res) {
-                            console.table(res)
-                        })
-                        
-
+                        if (userLoggedIn === key.username) {
+                            postContainer += '<div class="message__and__comments" id="' + key.id + '">'
+                            + '<div class="message">'
+                            + '<div class="message__informations">'
+                            + '<div class="message__username">' + key.username + '</div>'
+                            + '<div class="message__date">Posté le : ' + key.creation_date + '</div>'
+                            + '</div>'
+                            + '<div class="message__text">' + key.post + '</div>'
+                            + '<div class="message__buttons" id="message__buttons__' + key.id + '">'
+                            + '<div class="message__reply id="message__reply__' + key.id + '" @click="commentPost(' + key.id + ')">Répondre</div>'
+                            + '<div class="message__modify id="message__modify__' + key.id + '">Modifier</div>'
+                            + '<div class="message__delete id="message__delete__' + key.id + '">Supprimer</div>'
+                            + '</div>' 
+                            + '</div>'
+                            + '<div class="message__comments" id="message__comments__' + key.id + '"></div>'; 
+                        } else {
+                            postContainer += '<div class="message__and__comments" id="' + key.id + '">'
+                            + '<div class="message">'
+                            + '<div class="message__informations">'
+                            + '<div class="message__username">' + key.username + '</div>'
+                            + '<div class="message__date">Posté le : ' + key.creation_date + '</div>'
+                            + '</div>'
+                            + '<div class="message__text">' + key.post + '</div>'
+                            + '<div class="message__buttons" id="message__buttons__' + key.id + '">'
+                            + '<div class="message__reply id="message__reply__' + key.id + '" @click="commentPost(' + key.id + ')">Répondre</div>'
+                            + '</div>' 
+                            + '</div>'
+                            + '<div class="message__comments" id="message__comments__' + key.id + '"></div>';
+                        }   
                     });
                     document.getElementById('feed').innerHTML = postContainer + '</div>'                    
+                    /**********************************************************************************/
+                    const commentsResponse = await fetch('http://localhost:3000/api/post/getComments', {
+                        method: 'GET',
+                        headers: {
+                            Accept: 'application/json',
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`,
+                            }
+                        });
+                    const allComments = await commentsResponse.json();
+                    const comments = allComments.result
+                    console.table(comments);
+                    let commentsContainer = '<div>'
+                    comments.forEach(key => {
+                        if (userLoggedIn === key.username) {
+                            commentsContainer += '<div class="comment">'
+                            + '<div class="comment__informations">'
+                            + '<div class="comment__username">' + key.username + '</div>'
+                            + '<div hidden class="comment__id">' + key.id + '</div>'
+                            + '<div class="comment__date">Posté le : ' + key.creation_date + '</div>'
+                            + '</div>'
+                            + '<div class="comment__text">' + key.comment + '</div>'
+                            + '<div class="comment__buttons" id="comment__buttons__' + key.id + '">'
+                            + '<div class="comment__modify" id="comment__modify__' + key.id + '">Modifier</div>'
+                            + '<div class="comment__delete" id="comment__delete__' + key.id + '">Supprimer</div>'
+                            + '</div>'
+                            + '</div>'
+                        } else {
+                            commentsContainer += '<div class="comment">'
+                            + '<div class="comment__informations">'
+                            + '<div class="comment__username">' + key.username + '</div>'
+                            + '<div hidden class="comment__id">' + key.id + '</div>'
+                            + '<div class="comment__date">Posté le : ' + key.creation_date + '</div>'
+                            + '</div>'
+                            + '<div class="comment__text">' + key.comment + '</div>'
+                            + '<div class="comment__buttons" id="comment__buttons__' + key.id + '">'
+                            + '</div>'
+                            + '</div>'
+                        }
+                        let postCommented = document.getElementById('message__comments__' + key.post_commented);
+                        postCommented.innerHTML += commentsContainer
+                    });
   }
 }
 </script>
@@ -191,19 +236,26 @@ export default {
         text-align: justify;
         padding: 1em;
     }
-    .message__buttons {
+    .message__buttons, .comment__buttons {
         display: flex;
         justify-content: flex-end;
         padding: 1em;
     }
+    .message__reply {
+        cursor: pointer;
+    }
+    .message__reply:hover {
+        color: blue;
+    }
     .message__modify, .comment__modify {
-        margin-right: 1em;
+        margin-left: 1em;
         cursor: pointer;
     }
     .message__modify:hover, .comment__modify:hover {
         color: blue;
     }
     .message__delete, .comment__delete {
+        margin-left: 1em;
         cursor: pointer;
     }
     .message__delete:hover, .comment__delete:hover {

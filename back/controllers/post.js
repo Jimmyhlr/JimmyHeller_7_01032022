@@ -23,8 +23,10 @@ exports.newPost = (req, res, next) => {
 
 
 exports.retrieveAllPosts = (req, res, next) => {
+  let user = req.userData
   database.query(
-    `SELECT * FROM post;`,
+    `SELECT * FROM post
+    ORDER BY creation_date DESC;`,
     (err, result) => {
      if (err) {
        throw err;
@@ -33,15 +35,17 @@ exports.retrieveAllPosts = (req, res, next) => {
        })
      }
      return res.status(201).send({
-       result
+       result,
+       user
      })
     }
   )
 }
 
-exports.retrieveComments = (req, res, next) => {
+exports.getComments = (req, res, next) => {
   database.query(
-    `SELECT FROM comment WHERE post_commented ='${req.body.messageId}';`,
+    `SELECT * FROM comment
+    ORDER BY creation_date ASC;`,
     (err, result) => {
       if (err) {
         throw err;
@@ -49,9 +53,7 @@ exports.retrieveComments = (req, res, next) => {
           message: err
         })
       }
-      else if (!result) {
-        return res.status(201)
-      }
+      console.log(result)
       return res.status(201).send({
         result
       })

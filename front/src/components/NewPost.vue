@@ -27,8 +27,8 @@ export default {
                     .then(function (res) {
                         if (res.ok) {
                             return res.json()
-                            .then (function (resJson) {
-                                window.alert(resJson.message)
+                            .then(function () {
+                                window.location.reload()
                             })
                         }
                     })

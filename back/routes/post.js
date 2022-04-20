@@ -8,5 +8,5 @@ const multer = require('../middleware/multer-config');
 
 router.post('/newPost', auth.isLoggedIn, postCtrl.newPost);
 router.get('/feed', auth.isLoggedIn, postCtrl.retrieveAllPosts);
-router.post('/getComments', auth.isLoggedIn, postCtrl.retrieveComments);
+router.get('/getComments', auth.isLoggedIn, postCtrl.getComments);
 module.exports = router;
