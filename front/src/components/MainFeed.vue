@@ -93,7 +93,8 @@ export default {
                     let postContainer = "<h2>Fil d'actualité</h2><div>";
                     feed.forEach(key => {
                         let creationDate = new Date(key.creation_date)
-                        let formatCreationDate = creationDate.getDate() + '/' + creationDate.getMonth() + '/' + creationDate.getFullYear()
+                        const month = creationDate.toLocaleString('default', {month: 'long'})
+                        let formatCreationDate = creationDate.getDate() + ' ' + month + ' ' + creationDate.getFullYear()
                         let formatCreationTime = creationDate.getHours() + ':' + creationDate.getMinutes()
                         if (userLoggedIn === key.username) {
                             postContainer += '<div class="message__and__comments" id="' + key.id + '">'
@@ -109,7 +110,15 @@ export default {
                             + '<div class="message__delete id="message__delete__' + key.id + '">Supprimer</div>'
                             + '</div>' 
                             + '</div>'
-                            + '<div class="message__comments" id="message__comments__' + key.id + '"></div>'; 
+                            + '<div class="message__comments" id="message__comments__' + key.id + '">'
+                            + '<div class="new__comment">'
+                            + '<form method="post" name="new_comment" id="new__comment__form">'
+                            + '<textarea name="commentaire" placeholder="Commentez le post !" maxlength="5000" id="new__comment__text"></textarea>'
+                            + '<input type="button" value="Envoyer !" class="comment__button send__new__comment">'
+                            + '<input type="button" value="Annuler" class="comment__button cancel__new__comment">'
+                            + '</form>'
+                            + '</div>'
+                            + '</div>'; 
                         } else {
                             postContainer += '<div class="message__and__comments" id="' + key.id + '">'
                             + '<div class="message">'
@@ -141,7 +150,8 @@ export default {
                     let commentsContainer = '<div>'
                     comments.forEach(key => {
                         let creationDate = new Date(key.creation_date)
-                        let formatCreationDate = creationDate.getDate() + '/' + creationDate.getMonth() + '/' + creationDate.getFullYear()
+                        const month = creationDate.toLocaleString('default', {month: 'long'})
+                        let formatCreationDate = creationDate.getDate() + ' ' + month + ' ' + creationDate.getFullYear()
                         let formatCreationTime = creationDate.getHours() + ':' + creationDate.getMinutes()
                         if (userLoggedIn === key.username) {
                             commentsContainer += '<div class="comment">'
