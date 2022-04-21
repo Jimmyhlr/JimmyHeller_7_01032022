@@ -76,6 +76,7 @@ export default {
         transition: transform 0.3s;
     }
     #send__new__post:hover {
+        background-color: rgb(0, 186, 0);
         transform: scale(1.03);
     }
 </style>

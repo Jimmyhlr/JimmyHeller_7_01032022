@@ -4,26 +4,39 @@ const database = require('../middleware/database');
 
 
 exports.newPost = (req, res, next) => {
-  console.log(req.body);
   database.query(
-    `INSERT INTO post (username, post, creation_date, last_modified)
-    VALUES ('${req.userData.username}', '${req.body.post}', now(), now());`,
+    `SELECT rights FROM user WHERE LOWER(username) = '${req.userData.username}';`,
     (err, result) => {
       if (err) {
         throw err;
         return res.status(400).send({
           message: err
-        });
+        })
       }
-      return res.status(201).send({
-        message: 'Message posté !'
-      })
-    })
+      let rights = result[0].rights
+      console.log(rights)
+      database.query(
+        `INSERT INTO post (username, user_rights, post, creation_date, last_modified)
+        VALUES ('${req.userData.username}', '${rights}', '${req.body.post}', now(), now());`,
+        (err, result) => {
+          if (err) {
+            throw err;
+            return res.status(400).send({
+              message: err
+            });
+          }
+          return res.status(201).send({
+            message: 'Message posté !'
+          })
+        })
+    }
+  )
+
 }
 
 
 exports.retrieveAllPosts = (req, res, next) => {
-  let user = req.userData
+  let user = req.userData.username
   database.query(
     `SELECT * FROM post
     ORDER BY creation_date DESC;`,
@@ -34,10 +47,25 @@ exports.retrieveAllPosts = (req, res, next) => {
          message: err
        })
      }
-     return res.status(201).send({
-       result,
-       user
-     })
+     let feed = result
+     database.query(
+       `SELECT rights FROM user WHERE LOWER(username) = '${user}';`,
+       (err, result) => {
+         if (err) {
+           throw err
+           return res.status(400).sendd({
+             message: err
+           })
+         }
+         let rights = result[0]
+         return res.status(201).send({
+           feed,
+           user,
+           rights
+         })
+
+       }
+     )
     }
   )
 }
