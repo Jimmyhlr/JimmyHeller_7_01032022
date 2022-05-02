@@ -48,6 +48,7 @@ exports.retrieveAllPosts = (req, res, next) => {
        })
      }
      let feed = result
+     console.log(feed)
      database.query(
        `SELECT rights FROM user WHERE LOWER(username) = '${user}';`,
        (err, result) => {
@@ -63,6 +64,7 @@ exports.retrieveAllPosts = (req, res, next) => {
            user,
            rights
          })
+         console.log(res)
 
        }
      )
