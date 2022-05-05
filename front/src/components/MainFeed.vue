@@ -6,16 +6,16 @@
             <div class="message">
                 <div class="message__informations">
                     <div class="message__username">
-                        <div>{{ post.username }}</div>
-                        <div v-if="post.user_rights === 'admin'">(modérateur)</div>
+                        <div v-if="post.user_rights === 'user'">{{ post.username }}</div>
+                        <div v-if="post.user_rights === 'admin'">{{ post.username }} (modérateur)</div>
                     </div>
-                    <div class="message__date admin">Posté le : formatCreationDate à formatCreationTime</div>
+                    <div class="message__date admin">{{ formatCreationDate(post.creation_date) }}</div>
                 </div>
                 <div class="message__text">{{ post.post }}</div>
                 <div class="message__buttons">
                     <div class="message__reply" @click="commentPost(post.id)">Répondre</div>
-                    <div class="message__modify" v-if="userLoggedIn === key.username || userRights === 'admin'">Modifier</div>
-                    <div class="message__delete" v-if="userLoggedIn === key.username || userRights === 'admin'">Supprimer</div>
+                    <div class="message__modify" v-if="userLoggedIn === post.username || userRights === 'admin'">Modifier</div>
+                    <div class="message__delete" v-if="userLoggedIn === post.username || userRights === 'admin'">Supprimer</div>
                 </div>
             </div>
             <div class="new__comment" id="new__comment__key.id "></div>
@@ -37,13 +37,21 @@ export default {
   methods: {
       commentPost(id) {
           console.log('click détecté sur ' + id)
+      },
+      formatCreationDate(rawDate) {
+          let creationDate = new Date(rawDate)
+          const month = creationDate.toLocaleString('default', {month: 'long'})
+          let date = creationDate.getDate() + ' ' + month + ' ' + creationDate.getFullYear()
+          let time = String(creationDate.getHours()).padStart(2, '0') + ':' + String(creationDate.getMinutes()).padStart(2, '0')
+          let dateAndTime = 'Posté le ' + date + ' à ' + time
+          return dateAndTime
       }
   },
-    mounted() {
+    async mounted() {
     try {
         console.log('mounted')
         const token = window.localStorage.getItem('token')
-        const fetchPost = fetch("http://localhost:3000/api/post/feed", {
+        const fetchPost = await fetch("http://localhost:3000/api/post/feed", {
             method: 'GET',
             headers: {
                 Accept: 'application/json',
@@ -51,21 +59,16 @@ export default {
                 'Authorization': `Bearer ${token}`,
                 }
             })
-        fetchPost.then(res => {
-        const allPosts = res.json()
-        console.log(res)
-        allPosts.feed.forEach(post => {
-            this.posts.push(post)
-            console.log(post)
-        })
+        const allPosts = await fetchPost.json()
+        console.log(allPosts)
+        this.posts = allPosts.feed
         this.userLoggedIn = allPosts.user
         this.userRights = allPosts.rights.rights
         console.table(this.posts)
         console.log(this.userRights)           
-        })
-    } catch (error) {
-        console.log(error)
-    }
+        } catch (error) {
+            console.log(error)
+        }
   }
 }
 </script>
