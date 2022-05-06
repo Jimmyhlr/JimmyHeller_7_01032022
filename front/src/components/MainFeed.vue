@@ -1,25 +1,51 @@
 <template>
     <div id="feed">
         <h2>Fil d'actualité</h2>
-
+        <!--boucle message + comments-->
         <div class="message__and__comments" v-for="post in posts" :key="post.id">
+            <!--boucle messages-->
             <div class="message">
                 <div class="message__informations">
                     <div class="message__username">
                         <div v-if="post.user_rights === 'user'">{{ post.username }}</div>
-                        <div v-if="post.user_rights === 'admin'">{{ post.username }} (modérateur)</div>
+                        <div v-if="post.user_rights === 'admin'" class="admin">{{ post.username }} (modérateur)</div>
                     </div>
-                    <div class="message__date admin">{{ formatCreationDate(post.creation_date) }}</div>
+                    <div class="message__date">
+                        <div v-if="post.user_rights === 'user'">{{ formatCreationDate(post.creation_date) }}</div>
+                        <div v-if="post.user_rights === 'admin'" class="admin">{{ formatCreationDate(post.creation_date) }}</div>
+                    </div>
                 </div>
                 <div class="message__text">{{ post.post }}</div>
                 <div class="message__buttons">
                     <div class="message__reply" @click="commentPost(post.id)">Répondre</div>
-                    <div class="message__modify" v-if="userLoggedIn === post.username || userRights === 'admin'">Modifier</div>
-                    <div class="message__delete" v-if="userLoggedIn === post.username || userRights === 'admin'">Supprimer</div>
+                    <div class="message__modify" @click="modifyPost(post.id)" v-if="userLoggedIn === post.username || userRights === 'admin'">Modifier</div>
+                    <div class="message__delete" @click="deletePost(post.id)" v-if="userLoggedIn === post.username || userRights === 'admin'">Supprimer</div>
                 </div>
             </div>
+            <!--div champ textuel "commenter" - appelé au click sur bouton répondre-->
             <div class="new__comment" id="new__comment__key.id "></div>
-            <div class="message__comments" id="message__comments__key.id"></div> 
+            <!--boucle comments-->
+            <div class="message__comments">
+                <div v-for="comment in commentsOfPost(post.id)" :key="comment.id">
+                    <div class="comment">
+                        <div class="comment__informations">
+                            <div class="comment__username">
+                                <div v-if="post.user_rights === 'user'">{{ comment.username }}</div>
+                                <div v-if="post.user_rights === 'admin'" class="admin">{{ comment.username }} (modérateur)</div>
+                            </div>
+                            <div class="comment__date">
+                                <div v-if="post.user_rights === 'user'">{{ formatCreationDate(comment.creation_date) }}</div>
+                                <div v-if="post.user_rights === 'admin'" class="admin">{{ formatCreationDate(comment.creation_date) }}</div>
+                            </div>
+                        </div>
+                        <div class="comment__text">{{ comment.comment }}</div>
+                        <div class="comment__buttons">
+                            <div class="comment__modify" @click="modifyComment(comment.id)" v-if="userLoggedIn === comment.username || userRights === 'admin'">Modifier</div>
+                            <div class="comment__delete" @click="deleteComment(comment.id)" v-if="userLoggedIn === comment.username || userRights === 'admin'">Supprimer</div>
+                        </div>  
+                    </div> 
+                </div>                     
+            </div>
         </div>
 
     </div>
@@ -30,13 +56,20 @@ export default {
   data() {
       return {
           posts: [],
+          comments: [],
           userLoggedIn: '',
           userRights: ''
       }
   },
   methods: {
       commentPost(id) {
-          console.log('click détecté sur ' + id)
+          console.log('comment ' + id)
+      },
+      modifyPost(id) {
+          console.log('modify ' + id)
+      },
+      deletePost(id) {
+          console.log('delete ' + id)
       },
       formatCreationDate(rawDate) {
           let creationDate = new Date(rawDate)
@@ -45,13 +78,16 @@ export default {
           let time = String(creationDate.getHours()).padStart(2, '0') + ':' + String(creationDate.getMinutes()).padStart(2, '0')
           let dateAndTime = 'Posté le ' + date + ' à ' + time
           return dateAndTime
+      },
+      commentsOfPost(postCommented) {
+          return this.comments.filter(comment => comment.post_commented == postCommented)
       }
   },
     async mounted() {
     try {
         console.log('mounted')
         const token = window.localStorage.getItem('token')
-        const fetchPost = await fetch("http://localhost:3000/api/post/feed", {
+        const fetchPosts = await fetch("http://localhost:3000/api/post/feed", {
             method: 'GET',
             headers: {
                 Accept: 'application/json',
@@ -59,15 +95,28 @@ export default {
                 'Authorization': `Bearer ${token}`,
                 }
             })
-        const allPosts = await fetchPost.json()
+        const allPosts = await fetchPosts.json()
         console.log(allPosts)
         this.posts = allPosts.feed
         this.userLoggedIn = allPosts.user
         this.userRights = allPosts.rights.rights
         console.table(this.posts)
-        console.log(this.userRights)           
-        } catch (error) {
-            console.log(error)
+        console.log(this.userRights)
+        
+        const fetchComments = await fetch("http://localhost:3000/api/post/getComments", {
+            method: 'GET',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        })
+        const getComments = await fetchComments.json()
+        const allComments = getComments.result
+        this.comments = allComments
+        }
+    catch (error) {
+        console.log(error)
         }
   }
 }

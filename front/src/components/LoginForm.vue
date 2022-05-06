@@ -7,6 +7,7 @@
             <div class="login__form">
                 <input type="password" name="password" placeholder="Mot de passe" id="login__form__password" required>
             </div>
+            <div id="errorMessage"></div>
             <div class="login__form">
                 <input type="button" value="Connexion" id="form__button" @click="login()">
             </div>
@@ -25,7 +26,6 @@ export default {
                 login() {
                 const username = document.getElementById("login__form__username").value;
                 const password = document.getElementById("login__form__password").value;
-                console.log('fonction login', username, password);
                 fetch("http://localhost:3000/api/auth/login", {
                     method: "POST",
                     headers: {
@@ -35,20 +35,22 @@ export default {
                     body: JSON.stringify({ username, password })
                     })
                     .then(function (res) {
+                        console.log(res)
                         if (res.ok) {
                             return res.json()
                             .then(function (resJson) {
                                 console.log(resJson);
                                 const token = resJson.token;
                                 window.localStorage.setItem('token', token);
+                                window.location.replace("/home");
                             })
-                        }/*
+                        }
                         else if (res.status === 401) {
-                            // ajouter message d'erreur implémenté dans le html
-                        }*/
-                    })
-                    .then(function () {
-                        window.location.replace("/home");
+                                return res.json()
+                                .then(function (resJson) {
+                                    document.getElementById('errorMessage').innerHTML = resJson.message
+                                })
+                        }
                     })
                     .catch(function (err) {
                         console.error(err);
@@ -97,6 +99,9 @@ export default {
     }
     input:focus::placeholder {
         color: transparent;
+    }
+    #errorMessage {
+        color: red
     }
     #form__button {
         color: white;

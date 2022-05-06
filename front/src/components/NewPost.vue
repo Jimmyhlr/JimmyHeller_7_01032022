@@ -3,6 +3,7 @@
         <h1>Poster un nouveau message</h1>
         <form method="post" name="new_post" id="new__post__form">
             <textarea name="message" placeholder="Exprimez-vous !" maxlength="5000" id="new__post__text"></textarea>
+            <div id="notEnoughCharacters"></div>
             <input type="button" value="Envoyer !" id="send__new__post" @click="newPost()">
         </form>
     </div>
@@ -14,30 +15,37 @@ export default {
   methods: {
                 newPost() {
                     const post = document.getElementById("new__post__text").value;
-                    const token = window.localStorage.getItem('token');
-                    fetch('http://localhost:3000/api/post/newPost', {
-                        method: 'POST',
-                        headers: {
-                            Accept: 'application/json',
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`,
-                            },
-                        body: JSON.stringify({ post })
-                        })
-                    .then(function (res) {
-                        if (res.ok) {
-                            return res.json()
-                            .then(function () {
-                                window.location.reload()
+                    if (post.length > 3) {
+                        const token = window.localStorage.getItem('token');
+                        fetch('http://localhost:3000/api/post/newPost', {
+                            method: 'POST',
+                            headers: {
+                                Accept: 'application/json',
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`,
+                                },
+                            body: JSON.stringify({ post })
                             })
-                        }
-                    })
+                        .then(function (res) {
+                            if (res.ok) {
+                                return res.json()
+                                .then(function () {
+                                    window.location.reload()
+                                })
+                            }
+                        })
+                    } else {
+                        document.getElementById('notEnoughCharacters').innerHTML = 'Le message doit contenir au moins 3 caractères'
+                    }
                 }
   }
 }
 </script>
 
 <style>
+    #notEnoughCharacters {
+        color: red;
+    }
     #new__post__container {
         background-color: white;
         box-shadow: 0px 0px 22px 0px rgba(0,0,0,0.79);
