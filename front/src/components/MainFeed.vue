@@ -30,12 +30,12 @@
                     <div class="comment">
                         <div class="comment__informations">
                             <div class="comment__username">
-                                <div v-if="post.user_rights === 'user'">{{ comment.username }}</div>
-                                <div v-if="post.user_rights === 'admin'" class="admin">{{ comment.username }} (modérateur)</div>
+                                <div v-if="comment.user_rights === 'user'">{{ comment.username }}</div>
+                                <div v-if="comment.user_rights === 'admin'" class="admin">{{ comment.username }} (modérateur)</div>
                             </div>
                             <div class="comment__date">
-                                <div v-if="post.user_rights === 'user'">{{ formatCreationDate(comment.creation_date) }}</div>
-                                <div v-if="post.user_rights === 'admin'" class="admin">{{ formatCreationDate(comment.creation_date) }}</div>
+                                <div v-if="comment.user_rights === 'user'">{{ formatCreationDate(comment.creation_date) }}</div>
+                                <div v-if="comment.user_rights === 'admin'" class="admin">{{ formatCreationDate(comment.creation_date) }}</div>
                             </div>
                         </div>
                         <div class="comment__text">{{ comment.comment }}</div>
@@ -47,7 +47,6 @@
                 </div>                     
             </div>
         </div>
-
     </div>
 </template>
 <script>
@@ -69,8 +68,53 @@ export default {
           console.log('modify ' + id)
       },
       deletePost(id) {
-          console.log('delete ' + id)
+          let confirmAction = confirm("Voulez-vous vraiment supprimer le message ?")
+          if (confirmAction) {
+              const token = window.localStorage.getItem('token');
+              fetch('http://localhost:3000/api/post/deletePost', {
+                  method: 'POST',
+                  headers: {
+                      Accept: 'application/json',
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${token}`,
+                  },
+                  body: JSON.stringify({ id })
+              })
+              .then(function (res) {
+                  console.log(res)
+                  if (res.ok) {
+                      return res.json()
+                      .then(function () {
+                          window.location.reload()
+                      })
+                  }
+              })
+          }
       },
+      deleteComment(id) {
+          let confirmAction = confirm("Voulez-vous vraiment supprimer le commentaire ?")
+          if (confirmAction) {
+              const token = window.localStorage.getItem('token');
+              fetch('http://localhost:3000/api/post/deleteComment', {
+                  method: 'POST',
+                  headers: {
+                      Accept: 'application/json',
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${token}`,
+                  },
+                  body: JSON.stringify({ id })
+              })
+              .then(function (res) {
+                  console.log(res)
+                  if (res.ok) {
+                      return res.json()
+                      .then(function () {
+                          window.location.reload()
+                      })
+                  }
+              })
+          }
+      },      
       formatCreationDate(rawDate) {
           let creationDate = new Date(rawDate)
           const month = creationDate.toLocaleString('default', {month: 'long'})

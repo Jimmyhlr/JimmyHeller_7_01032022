@@ -72,6 +72,23 @@ exports.retrieveAllPosts = (req, res, next) => {
   )
 }
 
+exports.deletePost = (req, res, next) => {
+  database.query(
+    `DELETE FROM post WHERE id = '${req.body.id}';`,
+    (err, result) => {
+      if (err) {
+        throw err;
+        return res.status(400).send({
+          message: err
+        })
+      }
+      return res.status(201).send({
+        message: 'Message supprimé'
+      })
+    }
+  )
+}
+
 exports.getComments = (req, res, next) => {
   database.query(
     `SELECT * FROM comment
@@ -86,6 +103,23 @@ exports.getComments = (req, res, next) => {
       console.log(result)
       return res.status(201).send({
         result
+      })
+    }
+  )
+}
+
+exports.deleteComment = (req, res, next) => {
+  database.query(
+    `DELETE FROM comment WHERE id = '${req.body.id}';`,
+    (err, result) => {
+      if (err) {
+        throw err;
+        return res.status(400).send({
+          message: err
+        })
+      }
+      return res.status(201).send({
+        message: 'Message supprimé'
       })
     }
   )
