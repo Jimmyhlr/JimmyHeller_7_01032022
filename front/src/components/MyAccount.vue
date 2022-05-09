@@ -5,7 +5,7 @@
             <div class="information">Inscrit depuis le {{ formatCreationDate(userInformation.registered) }}</div>
             <div class="information">
                 <div v-if="userInformation.rights === 'user'">Droits : utilisateur</div>
-                <div v-if="userInformation.rights === 'admin'">Droits : administrateur</div>
+                <div v-if="userInformation.rights === 'admin'">Droits : modérateur</div>
             </div>
         </div>
     </div>
