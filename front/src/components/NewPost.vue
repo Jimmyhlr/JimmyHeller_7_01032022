@@ -4,6 +4,8 @@
         <form method="post" name="new_post" id="new__post__form">
             <textarea name="message" placeholder="Exprimez-vous !" maxlength="5000" id="new__post__text"></textarea>
             <div id="notEnoughCharacters"></div>
+            <input type="file" name="image" accept="image/jpg, image/jpeg, image/png" id="new__post__image">
+            <div id="extensionNotSupported"></div>
             <input type="button" value="Envoyer !" id="send__new__post" @click="newPost()">
         </form>
     </div>
@@ -14,9 +16,18 @@ export default {
   name: 'NewPost',
   methods: {
                 newPost() {
-                    const post = document.getElementById("new__post__text").value;
-                    if (post.length > 3) {
-                        const token = window.localStorage.getItem('token');
+                    const post = document.getElementById("new__post__text").value
+                    const image = document.getElementById("new__post__image").files[0]
+                    const token = window.localStorage.getItem('token');
+                    const image_extension = getFileExtension(image.name)
+                    function getFileExtension(imageName) {
+                        var a = imageName.split(".");
+                        if (a.length === 1 || (a[0] === "" && a.length === 2)) {
+                            return "";
+                        }
+                        return a.pop()
+                    }
+                    if ((post.length > 3 && image_extension == 'jpg') || (post.length > 3 && image_extension == 'jpeg') || (post.length > 3 && image_extension == 'png')) {
                         fetch('http://localhost:3000/api/post/newPost', {
                             method: 'POST',
                             headers: {
@@ -24,7 +35,7 @@ export default {
                                 'Content-Type': 'application/json',
                                 'Authorization': `Bearer ${token}`,
                                 },
-                            body: JSON.stringify({ post })
+                            body: JSON.stringify({ post, image })
                             })
                         .then(function (res) {
                             if (res.ok) {
@@ -34,8 +45,28 @@ export default {
                                 })
                             }
                         })
-                    } else {
-                        document.getElementById('notEnoughCharacters').innerHTML = 'Le message doit contenir au moins 3 caractères'
+                    } else if (post.length > 3 && image.length == 0) {
+                        console.log(token, post)
+                        fetch('http://localhost:3000/api/post/newPost', {
+                            headers: {
+                                Accept: 'application/json',
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`,
+                                },
+                            body: JSON.stringify({ post, image })
+                            })
+                        .then(function (res) {
+                            if (res.ok) {
+                                return res.json()
+                                .then(function () {
+                                    window.location.reload()
+                                })
+                            }
+                        })
+                    } else if (post.length <= 3) {
+                        document.getElementById('notEnoughCharacters').innerHTML = 'Le message doit contenir plus de 3 caractères'
+                    } else if ((image.length > 0 && image_extension != 'jpg') || (image.length > 0 && image_extension != 'jpeg') || (image.length > 0 && image_extension != 'png')) {
+                        document.getElementById('extensionNotSupported').innerHTML = "L'image sélectionnée doit être au format .jpg, .jpeg ou .png"
                     }
                 }
   }
@@ -43,7 +74,7 @@ export default {
 </script>
 
 <style>
-    #notEnoughCharacters {
+    #notEnoughCharacters, #extensionNotSupported {
         color: red;
     }
     #new__post__container {
@@ -86,5 +117,18 @@ export default {
     #send__new__post:hover {
         background-color: rgb(0, 186, 0);
         transform: scale(1.03);
+    }
+    #new__post__image {
+        margin-top: 0.5em;
+        margin-left: 20%;
+        margin-right: 20%;
+        padding-left: 0;
+        padding-right: 0;
+        height: auto;
+        width: auto;
+        max-width: 30em;
+        border-radius: 0.5em;
+        border: 0.05em solid black;
+        box-shadow: 0;        
     }
 </style>

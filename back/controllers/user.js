@@ -109,7 +109,7 @@ exports.login = (req, res, next) => {
 
 
 exports.userinfos = (req, res, next) => {
-  let sql = `SELECT username FROM user WHERE ( username = '${req.userData.username}' );` //req.userData vient du middleware de vérification de token
+  let sql = `SELECT username, registered, rights FROM user WHERE ( username = '${req.userData.username}' );` //req.userData vient du middleware de vérification de token
   database.query(sql, function (err, result, fields) {
       if (err) throw err;
       return res.status(200).json(result);

@@ -6,7 +6,7 @@ const auth = require('../middleware/auth');
 const multer = require('../middleware/multer-config');
 
 
-router.post('/newPost', auth.isLoggedIn, postCtrl.newPost);
+router.post('/newPost', auth.isLoggedIn, multer, postCtrl.newPost);
 router.post('/deletePost', auth.isLoggedIn, postCtrl.deletePost);
 router.post('/deleteComment', auth.isLoggedIn, postCtrl.deleteComment);
 router.get('/feed', auth.isLoggedIn, postCtrl.retrieveAllPosts);

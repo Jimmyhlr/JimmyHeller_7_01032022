@@ -22,10 +22,18 @@
                     <div class="message__delete" @click="deletePost(post.id)" v-if="userLoggedIn === post.username || userRights === 'admin'">Supprimer</div>
                 </div>
             </div>
-            <!--div champ textuel "commenter" - appelé au click sur bouton répondre-->
-            <div class="new__comment" id="new__comment__key.id "></div>
-            <!--boucle comments-->
+            
             <div class="message__comments">
+                <!--div champ textuel "commenter" - appelé au click sur bouton répondre-->
+                <div class="new__comment">
+                    <div class="comment_form_header">Commenter le post</div>
+                    <form method="post" name="new_comment" class="new__comment__form">
+                        <textarea name="commentaire" placeholder="Commentez le post !" maxlength="5000" class="new__comment__text" id="new__comment__text__{{ post.id }}"></textarea>
+                        <input type="button" value="Envoyer !" class="comment__button send__new__comment" @click="sendNewComment(post.id)">
+                        <input type="button" value="Annuler" class="comment__button cancel__new__comment" @click="cancelNewComment(post.id)">
+                    </form>
+                </div>
+                <!--boucle comments-->
                 <div v-for="comment in commentsOfPost(post.id)" :key="comment.id">
                     <div class="comment">
                         <div class="comment__informations">
@@ -62,7 +70,15 @@ export default {
   },
   methods: {
       commentPost(id) {
-          console.log('comment ' + id)
+          let commentFormContainer = document.getElementById('new__comment__' + id)
+          let commentForm = '<div class="new__post__container">'
+          + '<h1>Poster un nouveau commentaire</h1>'
+          + '<form method="post" name="new_comment" class="new__comment__form">'
+          + '<textarea name="message" placeholder="Commentez le message !" maxlength="5000" class="new__post__text"></textarea>'
+          + '<div id="notEnoughCharacters"></div>'
+          + '<input type="button" value="Envoyer !" id="send__new__comment"'
+    
+          commentFormContainer.innerHTML = commentForm
       },
       modifyPost(id) {
           console.log('modify ' + id)
@@ -202,7 +218,6 @@ export default {
         min-width: 70%;
         background-color: rgb(241, 241, 241);
         box-shadow: 0px 0px 22px 0px rgba(0,0,0,0.79);
-        padding: 1em;
         margin: 0em;
         border-bottom-left-radius: 1em;
         border-bottom-right-radius: 1em;
@@ -213,8 +228,8 @@ export default {
         min-width: 90%;
         background-color: white;
         box-shadow: 0px 0px 22px 0px rgba(0,0,0,0.79);
-        margin: 0em;
         margin-top: 1em;
+        margin-bottom: 0.75em;
         border-radius: 1em;
     }    
     .message__informations, .comment__informations {
@@ -262,8 +277,8 @@ export default {
         color: red;
     }    
 /*-----------------------------------------------------------*/
-    h3 {
-
+    .new__comment {
+        margin: 1.5em
     }
     .new__comment__form {
         padding: 1em;
