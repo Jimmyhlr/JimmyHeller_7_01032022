@@ -8,7 +8,7 @@
                 <input type="password" name="password" placeholder="Mot de passe" id="signup__form__password" required>
             </div>
             <div class="signup__form">
-                <input type="password" name="password_repeat" placeholder="Validation du mot de passe" id="signup__form__password_repeat" required>
+                <input type="password" name="password_repeat" placeholder="Confirmation du mot de passe" id="signup__form__password_repeat" required>
             </div>
             <div class="signup__form">
                 <input type="button" value="Inscription" id="form__button" @click="signup()">

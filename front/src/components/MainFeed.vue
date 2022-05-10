@@ -11,28 +11,37 @@
                         <div v-if="post.user_rights === 'admin'" class="admin">{{ post.username }} (modérateur)</div>
                     </div>
                     <div class="message__date">
-                        <div v-if="post.user_rights === 'user'">{{ formatCreationDate(post.creation_date) }}</div>
-                        <div v-if="post.user_rights === 'admin'" class="admin">{{ formatCreationDate(post.creation_date) }}</div>
+                        <div v-if="post.user_rights === 'user' && post.creation_date === post.last_modified">Posté le : {{ formatCreationDate(post.creation_date) }}</div>
+                        <div v-if="post.user_rights === 'user' && post.creation_date != post.last_modified">Modifié le : {{ formatCreationDate(post.last_modified) }}</div>
+                        <div v-if="post.user_rights === 'admin' && post.creation_date === post.last_modified" class="admin">Posté le : {{ formatCreationDate(post.creation_date) }}</div>
+                        <div v-if="post.user_rights === 'admin' && post.creation_date != post.last_modified" class="admin">Modifié le : {{ formatCreationDate(post.last_modified) }}</div>
                     </div>
                 </div>
                 <div class="message__text">{{ post.post }}</div>
                 <div class="message__buttons">
-                    <div class="message__reply" @click="commentPost(post.id)">Répondre</div>
-                    <div class="message__modify" @click="modifyPost(post.id)" v-if="userLoggedIn === post.username || userRights === 'admin'">Modifier</div>
+                    <div class="message__reply" @click="displayCommentForm(post.id)">Répondre</div>
+                    <div class="message__modify" @click="displayModifyPostForm(post.id)" v-if="userLoggedIn === post.username || userRights === 'admin'">Modifier</div>
                     <div class="message__delete" @click="deletePost(post.id)" v-if="userLoggedIn === post.username || userRights === 'admin'">Supprimer</div>
                 </div>
             </div>
             
             <div class="message__comments">
                 <!--div champ textuel "commenter" - appelé au click sur bouton répondre-->
-                <div class="new__comment">
+                <div v-bind:id="'new__comment__' + post.id" class="new__comment">
                     <div class="comment_form_header">Commenter le post</div>
                     <form method="post" name="new_comment" class="new__comment__form">
-                        <textarea name="commentaire" placeholder="Commentez le post !" maxlength="5000" class="new__comment__text" id="new__comment__text__{{ post.id }}"></textarea>
+                        <textarea v-bind:id="'new__comment__text__' + post.id" name="commentaire" placeholder="Commentez le post !" maxlength="5000" class="new__comment__text"></textarea>
                         <input type="button" value="Envoyer !" class="comment__button send__new__comment" @click="sendNewComment(post.id)">
-                        <input type="button" value="Annuler" class="comment__button cancel__new__comment" @click="cancelNewComment(post.id)">
                     </form>
                 </div>
+                <!--div champ textuel "modifier le message" - appelé au click sur bouton modifier-->
+                <div v-bind:id="'modify__post__' + post.id" class="message__modify__container">
+                    <div class="comment_form_header">Modifier le message</div>
+                    <form method="post" name="modify_message" class="message__modify__form">
+                        <textarea v-bind:id="'message__modify__text__' + post.id" v-model="post.post" type="text" name="modifier" placeholder="Modifier le message" maxlength="5000" class="message__modify__text"></textarea>
+                        <input type="button" value="Modifier" class="comment__button save__modifications" @click="modifyPost(post.id)">
+                    </form>
+                </div>                
                 <!--boucle comments-->
                 <div v-for="comment in commentsOfPost(post.id)" :key="comment.id">
                     <div class="comment">
@@ -42,16 +51,26 @@
                                 <div v-if="comment.user_rights === 'admin'" class="admin">{{ comment.username }} (modérateur)</div>
                             </div>
                             <div class="comment__date">
-                                <div v-if="comment.user_rights === 'user'">{{ formatCreationDate(comment.creation_date) }}</div>
-                                <div v-if="comment.user_rights === 'admin'" class="admin">{{ formatCreationDate(comment.creation_date) }}</div>
+                                <div v-if="comment.user_rights === 'user' && comment.creation_date === comment.last_modified">Posté le : {{ formatCreationDate(comment.creation_date) }}</div>
+                                <div v-if="comment.user_rights === 'user' && comment.creation_date != comment.last_modified">Modifié le : {{ formatCreationDate(comment.last_modified) }}</div>
+                                <div v-if="comment.user_rights === 'admin' && comment.creation_date === comment.last_modified" class="admin">Posté le : {{ formatCreationDate(comment.creation_date) }}</div>
+                                <div v-if="comment.user_rights === 'admin' && comment.creation_date != comment.last_modified" class="admin">Modifié le : {{ formatCreationDate(comment.last_modified) }}</div>
                             </div>
                         </div>
                         <div class="comment__text">{{ comment.comment }}</div>
                         <div class="comment__buttons">
-                            <div class="comment__modify" @click="modifyComment(comment.id)" v-if="userLoggedIn === comment.username || userRights === 'admin'">Modifier</div>
+                            <div class="comment__modify" @click="displayModifyCommentForm(comment.id)" v-if="userLoggedIn === comment.username || userRights === 'admin'">Modifier</div>
                             <div class="comment__delete" @click="deleteComment(comment.id)" v-if="userLoggedIn === comment.username || userRights === 'admin'">Supprimer</div>
                         </div>  
-                    </div> 
+                    </div>
+                    <!--div champ textuel "modifier le commentaire" - appelé au click sur bouton modifier-->
+                    <div v-bind:id="'modify__comment__' + comment.id" class="comment__modify__container">
+                        <div class="comment_form_header">Modifier le commentaire</div>
+                        <form method="post" name="modify_message" class="message__modify__form">
+                            <textarea v-bind:id="'comment__modify__text__' + comment.id" v-model="comment.comment" type="text" name="modifier" placeholder="Modifier le commentaire" maxlength="5000" class="message__modify__text"></textarea>
+                            <input type="button" value="Modifier" class="comment__button save__modifications" @click="modifyComment(comment.id)">
+                        </form>
+                    </div>                        
                 </div>                     
             </div>
         </div>
@@ -69,19 +88,95 @@ export default {
       }
   },
   methods: {
-      commentPost(id) {
+      displayCommentForm(id) {
           let commentFormContainer = document.getElementById('new__comment__' + id)
-          let commentForm = '<div class="new__post__container">'
-          + '<h1>Poster un nouveau commentaire</h1>'
-          + '<form method="post" name="new_comment" class="new__comment__form">'
-          + '<textarea name="message" placeholder="Commentez le message !" maxlength="5000" class="new__post__text"></textarea>'
-          + '<div id="notEnoughCharacters"></div>'
-          + '<input type="button" value="Envoyer !" id="send__new__comment"'
-    
-          commentFormContainer.innerHTML = commentForm
+          if (window.getComputedStyle(commentFormContainer, null).display === 'none') {
+              commentFormContainer.style.display = 'block'
+          } else {
+              commentFormContainer.style.display = 'none'
+          }
       },
+      displayModifyPostForm(id) {
+          let modifyFormContainer = document.getElementById('modify__post__' + id)
+          if (window.getComputedStyle(modifyFormContainer, null).display === 'none') {
+              modifyFormContainer.style.display = 'block'
+          } else {
+              modifyFormContainer.style.display = 'none'
+          }
+      },      
+      displayModifyCommentForm(id) {
+          let modifyFormContainer = document.getElementById('modify__comment__' + id)
+          if (window.getComputedStyle(modifyFormContainer, null).display === 'none') {
+              modifyFormContainer.style.display = 'block'
+          } else {
+              modifyFormContainer.style.display = 'none'
+          }
+      },         
       modifyPost(id) {
-          console.log('modify ' + id)
+          let modifiedPost = document.getElementById('message__modify__text__' + id).value
+          let postId = id
+          const token = window.localStorage.getItem('token')
+          fetch('http://localhost:3000/api/post/modifyPost', {
+              method: 'POST',
+              headers: {
+                  Accept: 'application/json',
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`,
+                  },
+                  body: JSON.stringify({ modifiedPost, postId })
+                  })
+                  .then(function (res) {
+                      if (res.ok) {
+                          return res.json()
+                          .then(function () {
+                              window.location.reload()
+                              })
+                        }
+                    })
+      },
+      modifyComment(id) {
+          let modifiedComment = document.getElementById('comment__modify__text__' + id).value
+          let commentId = id
+          const token = window.localStorage.getItem('token')
+          fetch('http://localhost:3000/api/post/modifyComment', {
+              method: 'POST',
+              headers: {
+                  Accept: 'application/json',
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`,
+                  },
+                  body: JSON.stringify({ modifiedComment, commentId })
+                  })
+                  .then(function (res) {
+                      if (res.ok) {
+                          return res.json()
+                          .then(function () {
+                              window.location.reload()
+                              })
+                        }
+                    })
+      },            
+      sendNewComment(id) {
+          let comment = document.getElementById('new__comment__text__' + id).value
+          let commentedPostId = id
+          const token = window.localStorage.getItem('token')
+          fetch('http://localhost:3000/api/post/newComment', {
+              method: 'POST',
+              headers: {
+                  Accept: 'application/json',
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`,
+                  },
+                  body: JSON.stringify({ comment, commentedPostId })
+                  })
+                  .then(function (res) {
+                      if (res.ok) {
+                          return res.json()
+                          .then(function () {
+                              window.location.reload()
+                              })
+                        }
+                    })
       },
       deletePost(id) {
           let confirmAction = confirm("Voulez-vous vraiment supprimer le message ?")
@@ -136,7 +231,7 @@ export default {
           const month = creationDate.toLocaleString('default', {month: 'long'})
           let date = creationDate.getDate() + ' ' + month + ' ' + creationDate.getFullYear()
           let time = String(creationDate.getHours()).padStart(2, '0') + ':' + String(creationDate.getMinutes()).padStart(2, '0')
-          let dateAndTime = 'Posté le ' + date + ' à ' + time
+          let dateAndTime = date + ' à ' + time
           return dateAndTime
       },
       commentsOfPost(postCommented) {
@@ -200,7 +295,7 @@ export default {
         color: cyan;
     }
     .message__and__comments {
-
+        
     }
     .message {
         display: inline-block;
@@ -277,20 +372,21 @@ export default {
         color: red;
     }    
 /*-----------------------------------------------------------*/
-    .new__comment {
-        margin: 1.5em
+    .new__comment, .message__modify__container, .comment__modify__container {
+        margin: 1.5em;
+        display: none;
     }
-    .new__comment__form {
+    .new__comment__form, .message__modify__form {
         padding: 1em;
     }
-    .new__comment__text {
+    .new__comment__text, .message__modify__text {
         max-width: 90%;
         min-width: 90%;
         min-height: 4em;
         text-align: left;
         padding: 1em;
     }
-    .new__comment__text::placeholder {
+    .new__comment__text::placeholder, .message__modify__text::placeholder {
         padding-top: 1.5em;
         font-family: Avenir, Helvetica, Arial, sans-serif;
         -webkit-font-smoothing: antialiased;
@@ -302,16 +398,10 @@ export default {
         width: 10em;
         cursor: pointer;
     }
-    .send__new__comment {
+    .send__new__comment, .save__modifications {
         margin-right: 1em;
     }
-    .send__new__comment:hover {
+    .send__new__comment:hover, .save__modifications:hover {
         background-color: rgb(0, 186, 0);
     }
-    .cancel__new__comment {
-        margin-left: 1em;
-    }
-    .cancel__new__comment:hover {
-        background-color: rgba(255, 0, 0, 0.704);
-    }    
 </style>
