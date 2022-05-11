@@ -4,7 +4,9 @@ const database = require('../middleware/database')
 
 exports.newPost = (req, res, next) => {
   database.query(
-    `SELECT rights FROM user WHERE LOWER(username) = '${req.userData.username}';`,
+    `SELECT rights FROM user WHERE LOWER(username) = LOWER(?);`, [
+      req.userData.username
+    ],
     (err, result) => {
       if (err) {
         throw err;
@@ -17,7 +19,12 @@ exports.newPost = (req, res, next) => {
         const imageUrl = `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
         database.query(
           `INSERT INTO post (username, user_rights, post, creation_date, last_modified, image)
-          VALUES ('${req.userData.username}', '${rights}', "${req.body.post}", now(), now(), '${imageUrl}');`,
+          VALUES (LOWER(?), ?, ?, now(), now(), ?);`, [
+            req.userData.username,
+            rights,
+            req.body.post,
+            imageUrl
+          ],
           (err, result) => {
             if (err) {
               throw err;
@@ -32,7 +39,11 @@ exports.newPost = (req, res, next) => {
       } else {
         database.query(
           `INSERT INTO post (username, user_rights, post, creation_date, last_modified)
-          VALUES ('${req.userData.username}', '${rights}', "${req.body.post}", now(), now());`,
+          VALUES (LOWER(?), ?, ?, now(), now());`, [
+            req.userData.username, 
+            rights,
+            req.body.post
+          ],
           (err, result) => {
             if (err) {
               throw err;
@@ -65,7 +76,9 @@ exports.retrieveAllPosts = (req, res, next) => {
      }
      let feed = result
      database.query(
-       `SELECT rights FROM user WHERE LOWER(username) = '${user}';`,
+       `SELECT rights FROM user WHERE LOWER(username) = LOWER(?);`, [
+        user
+       ],
        (err, result) => {
          if (err) {
            throw err
@@ -90,9 +103,12 @@ exports.retrieveAllPosts = (req, res, next) => {
 exports.modifyPost = (req, res, next) => {
   database.query(
     `UPDATE post
-    SET post = '${req.body.modifiedPost}',
+    SET post = ?,
     last_modified = CURRENT_TIMESTAMP()
-    WHERE id = '${req.body.postId}';`,
+    WHERE id = ?;`, [
+      req.body.modifiedPost,
+      req.body.postId
+    ],
     (err, result) => {
       if (err) {
         throw err;
@@ -109,11 +125,15 @@ exports.modifyPost = (req, res, next) => {
 
 exports.deletePost = (req, res, next) => {
   database.query(
-    `SELECT image FROM post WHERE id = '${req.body.id}';`,
+    `SELECT image FROM post WHERE id = ?;`, [
+      req.body.id
+    ],
     (err, result) => {
       const imageUrl = result[0].image
       database.query(
-        `DELETE FROM post WHERE id = '${req.body.id}';`,
+        `DELETE FROM post WHERE id = ?;`, [
+          req.body.id
+        ],
         (err, result) => {
           if (err) {
             throw err;
@@ -141,7 +161,9 @@ exports.deletePost = (req, res, next) => {
 
 exports.newComment = (req, res, next) => {
   database.query(
-    `SELECT rights FROM user WHERE LOWER(username) = '${req.userData.username}';`,
+    `SELECT rights FROM user WHERE LOWER(username) = LOWER(?);`, [
+      req.userData.username
+    ],
     (err, result) => {
       if (err) {
         throw err;
@@ -152,7 +174,12 @@ exports.newComment = (req, res, next) => {
       let rights = result[0].rights
       database.query(
         `INSERT INTO comment (username, user_rights, comment, post_commented, creation_date, last_modified)
-        VALUES ('${req.userData.username}', '${rights}', "${req.body.comment}", '${req.body.commentedPostId}', now(), now());`,
+        VALUES (LOWER(?), ?, ?, ?, now(), now());`, [
+          req.userData.username,
+          rights,
+          req.body.comment,
+          req.body.commentedPostId
+        ],
         (err, result) => {
           if (err) {
             throw err;
@@ -190,9 +217,12 @@ exports.getComments = (req, res, next) => {
 exports.modifyComment = (req, res, next) => {
   database.query(
     `UPDATE comment
-    SET comment = '${req.body.modifiedComment}',
+    SET comment = ?,
     last_modified = CURRENT_TIMESTAMP()
-    WHERE id = '${req.body.commentId}';`,
+    WHERE id = ?;`, [
+      req.body.modifiedComment,
+      req.body.commentId
+    ],
     (err, result) => {
       if (err) {
         throw err;
@@ -209,7 +239,9 @@ exports.modifyComment = (req, res, next) => {
 
 exports.deleteComment = (req, res, next) => {
   database.query(
-    `DELETE FROM comment WHERE id = '${req.body.id}';`,
+    `DELETE FROM comment WHERE id = ?;`, [
+      req.body.id
+    ],
     (err, result) => {
       if (err) {
         throw err;
