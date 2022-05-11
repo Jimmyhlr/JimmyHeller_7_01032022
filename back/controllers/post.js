@@ -17,7 +17,7 @@ exports.newPost = (req, res, next) => {
         const imageUrl = `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
         database.query(
           `INSERT INTO post (username, user_rights, post, creation_date, last_modified, image)
-          VALUES ('${req.userData.username}', '${rights}', '${req.body.post}', now(), now(), '${imageUrl}');`,
+          VALUES ('${req.userData.username}', '${rights}', "${req.body.post}", now(), now(), '${imageUrl}');`,
           (err, result) => {
             if (err) {
               throw err;
@@ -32,7 +32,7 @@ exports.newPost = (req, res, next) => {
       } else {
         database.query(
           `INSERT INTO post (username, user_rights, post, creation_date, last_modified)
-          VALUES ('${req.userData.username}', '${rights}', '${req.body.post}', now(), now());`,
+          VALUES ('${req.userData.username}', '${rights}', "${req.body.post}", now(), now());`,
           (err, result) => {
             if (err) {
               throw err;
@@ -112,10 +112,6 @@ exports.deletePost = (req, res, next) => {
     `SELECT image FROM post WHERE id = '${req.body.id}';`,
     (err, result) => {
       const imageUrl = result[0].image
-      if (imageUrl != null) {
-        const imageName = imageUrl.split('/images/')[1]
-        return imageName
-      }
       database.query(
         `DELETE FROM post WHERE id = '${req.body.id}';`,
         (err, result) => {
@@ -126,6 +122,7 @@ exports.deletePost = (req, res, next) => {
             })
           }
           if (imageUrl != null) {
+            const imageName = imageUrl.split('/images/')[1]
             fs.unlink(`images/${imageName}`, (err => {
               if (err) { console.log(err) }
               else { console.log(imageName + ' supprimé') }
@@ -155,7 +152,7 @@ exports.newComment = (req, res, next) => {
       let rights = result[0].rights
       database.query(
         `INSERT INTO comment (username, user_rights, comment, post_commented, creation_date, last_modified)
-        VALUES ('${req.userData.username}', '${rights}', '${req.body.comment}', '${req.body.commentedPostId}', now(), now());`,
+        VALUES ('${req.userData.username}', '${rights}', "${req.body.comment}", '${req.body.commentedPostId}', now(), now());`,
         (err, result) => {
           if (err) {
             throw err;
