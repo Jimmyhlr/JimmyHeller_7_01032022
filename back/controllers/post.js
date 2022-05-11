@@ -94,7 +94,10 @@ exports.deletePost = (req, res, next) => {
     `SELECT image FROM post WHERE id = '${req.body.id}';`,
     (err, result) => {
       const imageUrl = result[0].image
-      const imageName = imageUrl.split('/images/')[1]
+      if (imageUrl != null) {
+        const imageName = imageUrl.split('/images/')[1]
+        return imageName
+      }
       database.query(
         `DELETE FROM post WHERE id = '${req.body.id}';`,
         (err, result) => {
@@ -104,10 +107,12 @@ exports.deletePost = (req, res, next) => {
               message: err
             })
           }
-          fs.unlink(`images/${imageName}`, (err => {
-            if (err) { console.log(err) }
-            else { console.log(imageName + ' supprimé') }
-          }))
+          if (imageUrl != null) {
+            fs.unlink(`images/${imageName}`, (err => {
+              if (err) { console.log(err) }
+              else { console.log(imageName + ' supprimé') }
+            }))
+          }
           return res.status(201).send({
             message: 'Message supprimé'
           })
