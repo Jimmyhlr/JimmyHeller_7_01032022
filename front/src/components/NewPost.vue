@@ -19,7 +19,6 @@ export default {
                     const post = document.getElementById("new__post__text").value
                     const token = window.localStorage.getItem('token');                    
                     const image = document.getElementById("new__post__image").files[0]
-                    console.log(image)
                     var image_extension = null
                     if (!(typeof image === 'undefined')) {
                         var a = image.name.split(".");
@@ -27,35 +26,14 @@ export default {
                             image_extension = a.pop()
                         }
                     }
-                    console.log(image)
-                    if (post.length > 3 && (image_extension == 'jpg' || image_extension == 'jpeg' || image_extension == 'png')) {
+                    const formData = new FormData()
+                    formData.append('post', post)
+                    formData.append('image', image)
+                    if (post.length > 3 && (image_extension == 'jpg' || image_extension == 'jpeg' || image_extension == 'png' || image_extension == null)) {
                         fetch('http://localhost:3000/api/post/newPost', {
                             method: 'POST',
-                            headers: {
-                                Accept: 'application/json',
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${token}`,
-                                },
-                            body: JSON.stringify({ post, image })
-                            })
-                        .then(function (res) {
-                            if (res.ok) {
-                                return res.json()
-                                .then(function () {
-                                    window.location.reload()
-                                })
-                            }
-                        })
-                    } else if (post.length > 3 && image_extension === null) {
-                        console.log(token, post)
-                        fetch('http://localhost:3000/api/post/newPost', {
-                            method: 'POST',
-                            headers: {
-                                Accept: 'application/json',
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${token}`,
-                                },
-                            body: JSON.stringify({ post })
+                            headers: { 'Authorization': `Bearer ${token}` },
+                            body: formData
                             })
                         .then(function (res) {
                             if (res.ok) {

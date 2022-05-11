@@ -4,6 +4,7 @@ const database = require('../middleware/database');
 
 
 exports.newPost = (req, res, next) => {
+  const imageUrl = `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
   database.query(
     `SELECT rights FROM user WHERE LOWER(username) = '${req.userData.username}';`,
     (err, result) => {
@@ -14,10 +15,9 @@ exports.newPost = (req, res, next) => {
         })
       }
       let rights = result[0].rights
-      console.log(rights)
       database.query(
-        `INSERT INTO post (username, user_rights, post, creation_date, last_modified)
-        VALUES ('${req.userData.username}', '${rights}', '${req.body.post}', now(), now());`,
+        `INSERT INTO post (username, user_rights, post, creation_date, last_modified, image)
+        VALUES ('${req.userData.username}', '${rights}', '${req.body.post}', now(), now(), '${imageUrl}');`,
         (err, result) => {
           if (err) {
             throw err;
@@ -34,7 +34,6 @@ exports.newPost = (req, res, next) => {
 
 }
 
-
 exports.retrieveAllPosts = (req, res, next) => {
   let user = req.userData.username
   database.query(
@@ -48,7 +47,6 @@ exports.retrieveAllPosts = (req, res, next) => {
        })
      }
      let feed = result
-     console.log(feed)
      database.query(
        `SELECT rights FROM user WHERE LOWER(username) = '${user}';`,
        (err, result) => {
@@ -121,7 +119,6 @@ exports.newComment = (req, res, next) => {
         })
       }
       let rights = result[0].rights
-      console.log(rights)
       database.query(
         `INSERT INTO comment (username, user_rights, comment, post_commented, creation_date, last_modified)
         VALUES ('${req.userData.username}', '${rights}', '${req.body.comment}', '${req.body.commentedPostId}', now(), now());`,
@@ -152,7 +149,6 @@ exports.getComments = (req, res, next) => {
           message: err
         })
       }
-      console.log(result)
       return res.status(201).send({
         result
       })
