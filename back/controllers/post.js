@@ -3,7 +3,6 @@ const database = require('../middleware/database')
 
 
 exports.newPost = (req, res, next) => {
-  const imageUrl = `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
   database.query(
     `SELECT rights FROM user WHERE LOWER(username) = '${req.userData.username}';`,
     (err, result) => {
@@ -14,20 +13,39 @@ exports.newPost = (req, res, next) => {
         })
       }
       let rights = result[0].rights
-      database.query(
-        `INSERT INTO post (username, user_rights, post, creation_date, last_modified, image)
-        VALUES ('${req.userData.username}', '${rights}', '${req.body.post}', now(), now(), '${imageUrl}');`,
-        (err, result) => {
-          if (err) {
-            throw err;
-            return res.status(400).send({
-              message: err
-            });
-          }
-          return res.status(201).send({
-            message: 'Message posté !'
+      if (req.file != null) {
+        const imageUrl = `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
+        database.query(
+          `INSERT INTO post (username, user_rights, post, creation_date, last_modified, image)
+          VALUES ('${req.userData.username}', '${rights}', '${req.body.post}', now(), now(), '${imageUrl}');`,
+          (err, result) => {
+            if (err) {
+              throw err;
+              return res.status(400).send({
+                message: err
+              });
+            }
+            return res.status(201).send({
+              message: 'Message posté !'
+            })
           })
-        })
+      } else {
+        database.query(
+          `INSERT INTO post (username, user_rights, post, creation_date, last_modified)
+          VALUES ('${req.userData.username}', '${rights}', '${req.body.post}', now(), now());`,
+          (err, result) => {
+            if (err) {
+              throw err;
+              return res.status(400).send({
+                message: err
+              });
+            }
+            return res.status(201).send({
+              message: 'Message posté !'
+            })
+          })        
+      }
+
     }
   )
 
