@@ -1,6 +1,5 @@
-const bcrypt = require('bcrypt'); // importe le module "bcrypt" => cryptage de mdp, installé avec npm install --save bcrypt
-const jwt = require('jsonwebtoken'); // importe le module "jsonwebtoken" => création de token d'authentification, installé avec npm install --save jsonwebtoken
-const database = require('../middleware/database');
+const fs = require('fs')
+const database = require('../middleware/database')
 
 
 exports.newPost = (req, res, next) => {
@@ -92,19 +91,31 @@ exports.modifyPost = (req, res, next) => {
 
 exports.deletePost = (req, res, next) => {
   database.query(
-    `DELETE FROM post WHERE id = '${req.body.id}';`,
+    `SELECT image FROM post WHERE id = '${req.body.id}';`,
     (err, result) => {
-      if (err) {
-        throw err;
-        return res.status(400).send({
-          message: err
-        })
-      }
-      return res.status(201).send({
-        message: 'Message supprimé'
-      })
+      const imageUrl = result[0].image
+      const imageName = imageUrl.split('/images/')[1]
+      database.query(
+        `DELETE FROM post WHERE id = '${req.body.id}';`,
+        (err, result) => {
+          if (err) {
+            throw err;
+            return res.status(400).send({
+              message: err
+            })
+          }
+          fs.unlink(`images/${imageName}`, (err => {
+            if (err) { console.log(err) }
+            else { console.log(imageName + ' supprimé') }
+          }))
+          return res.status(201).send({
+            message: 'Message supprimé'
+          })
+        }
+      )
     }
   )
+
 }
 
 

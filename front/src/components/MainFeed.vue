@@ -18,6 +18,7 @@
                     </div>
                 </div>
                 <div class="message__text">{{ post.post }}</div>
+                <img v-if="post.image != null" class="message__image" v-bind:src="post.image">
                 <div class="message__buttons">
                     <div class="message__reply" @click="displayCommentForm(post.id)">Répondre</div>
                     <div class="message__modify" @click="displayModifyPostForm(post.id)" v-if="userLoggedIn === post.username || userRights === 'admin'">Modifier</div>
@@ -345,6 +346,10 @@ export default {
     .message__text, .comment__text {
         text-align: justify;
         padding: 1em;
+    }
+    .message__image {
+
+        max-width: 80%;
     }
     .message__buttons, .comment__buttons {
         display: flex;
