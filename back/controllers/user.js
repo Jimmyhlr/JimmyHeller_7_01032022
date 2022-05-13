@@ -5,7 +5,10 @@ const database = require('../middleware/database');
 
 exports.signup = (req, res, next) => {
     database.query(
-      `SELECT * FROM user WHERE LOWER(username) = LOWER(${database.escape(req.body.username)});`,
+      `SELECT * FROM user WHERE LOWER(username) = LOWER(:username);`,
+      {
+        username: req.body.username
+      },
       (err, result) => {
         if (result.length) {
           return res.status(409).send({
@@ -22,7 +25,10 @@ exports.signup = (req, res, next) => {
               // hache le mdp et ajoute à la bdd
               database.query(
                 `INSERT INTO user (username, password, registered)
-                VALUES (${database.escape(req.body.username)}, ${database.escape(hash)}, now());`,
+                VALUES (:username, :hash, now());`, {
+                  username: req.body.username,
+                  hash: hash
+                },
                 (err, result) => {
                   if (err) {
                     throw err;
@@ -53,7 +59,9 @@ exports.signup = (req, res, next) => {
 
 exports.login = (req, res, next) => {
   database.query(
-    `SELECT * FROM user WHERE username = ${database.escape(req.body.username)};`,
+    "SELECT * FROM user WHERE username = ?;", [
+      req.body.username
+    ],
     (err, result) => {
       // l'utilisateur n'existe pas
       if (err) {
@@ -89,8 +97,11 @@ exports.login = (req, res, next) => {
               }
             );
             database.query(
-              `UPDATE user SET last_login = now() WHERE LOWER(username) = 'LOWER(${result[0].username})';`
+              "UPDATE user SET last_login = now() WHERE LOWER(username) = LOWER(?);", [
+                result[0].username
+              ]
             );
+            console.log()
             return res.status(200).send({
               message: 'Connecté !',
               token,
@@ -109,22 +120,28 @@ exports.login = (req, res, next) => {
 
 
 exports.userinfos = (req, res, next) => {
-  let sql = `SELECT username FROM user WHERE ( username = '${req.userData.username}' );` //req.userData vient du middleware de vérification de token
-  database.query(sql, function (err, result, fields) {
-      if (err) throw err;
-      return res.status(200).json(result);
-  });  
+  database.query(
+    `SELECT username, registered, rights FROM user WHERE ( username = ? );`, [
+      req.userData.username //req.userData vient du middleware de vérification de token
+    ],
+    (err, result) => {
+      if (err) throw err
+      return res.status(200).json(result)
+    }
+  )
 };
 
 
-exports.deleteAccount = (req, res, next) => {
-  console.log(req.body);
-  let sql = `DELETE FROM user WHERE ( username = '${req.userData.username}' );` //req.userData vient du middleware de vérification de token
-  console.log(sql);
-  database.query(sql, function (err, result, fields) {
-      if (err) throw err;
+exports.deleteAccount = (req, res, next) => {  
+  database.query(
+    `DELETE FROM user WHERE ( username = ? );`, [
+      req.userData.username
+    ],
+    (err, result) => {
+      if (err) throw err
       return res.status(200).send({
         message: 'Compte supprimé'
-      });
-  });  
+      })
+    }
+  )
 };

@@ -64,6 +64,14 @@ export default {
         padding: 0;
         margin-left: 2em;
     }
+    @media (max-width: 490px) {
+        #logo__groupomania {
+            top: -1em;
+            width: 9em;
+            margin-left: 1em;
+            padding: 0;
+        }
+    }
     #buttons {
         line-height: 0;
         padding-top: 0.5em;

@@ -1,258 +1,279 @@
 <template>
     <div id="feed">
         <h2>Fil d'actualité</h2>
-        <!--
-
-        <div class="message__and__comments">
+        <!--boucle message + comments-->
+        <div class="message__and__comments" v-for="post in posts" :key="post.id">
+            <!--boucle messages-->
             <div class="message">
                 <div class="message__informations">
                     <div class="message__username">
-                        Saervietsky
-                    </div>
-                    <div hidden class="message__id">
-                        5
+                        <div v-if="post.user_rights === 'user'">{{ post.username }}</div>
+                        <div v-if="post.user_rights === 'admin'" class="admin">{{ post.username }} (modérateur)</div>
                     </div>
                     <div class="message__date">
-                        Posté le : 19/04/2022 10:42
+                        <div v-if="post.user_rights === 'user' && post.creation_date === post.last_modified">Posté le : {{ formatCreationDate(post.creation_date) }}</div>
+                        <div v-if="post.user_rights === 'user' && post.creation_date != post.last_modified">Modifié le : {{ formatCreationDate(post.last_modified) }}</div>
+                        <div v-if="post.user_rights === 'admin' && post.creation_date === post.last_modified" class="admin">Posté le : {{ formatCreationDate(post.creation_date) }}</div>
+                        <div v-if="post.user_rights === 'admin' && post.creation_date != post.last_modified" class="admin">Modifié le : {{ formatCreationDate(post.last_modified) }}</div>
                     </div>
                 </div>
-                <div class="message__text">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-                </div>
+                <div class="message__text">{{ post.post }}</div>
+                <img v-if="post.image != null" class="message__image" v-bind:src="post.image">
                 <div class="message__buttons">
-                    <div class="message__modify">
-                        Modifier
-                    </div>
-                    <div class="message__delete">
-                        Supprimer
-                    </div>
-                </div> 
-            </div>   
-
-
-
+                    <div class="message__reply" @click="displayCommentForm(post.id)">Répondre</div>
+                    <div class="message__modify" @click="displayModifyPostForm(post.id)" v-if="userLoggedIn === post.username || userRights === 'admin'">Modifier</div>
+                    <div class="message__delete" @click="deletePost(post.id)" v-if="userLoggedIn === post.username || userRights === 'admin'">Supprimer</div>
+                </div>
+            </div>
+            
             <div class="message__comments">
-                <div class="comment">
-                    <div class="comment__informations">
-                        <div class="comment__username">
-                            Saervietsky
-                        </div>
-                        <div hidden class="comment__id">
-                            5
-                        </div>
-                        <div class="comment__date">
-                            Posté le : 19/04/2022 10:42
-                        </div>
-                    </div>
-                    <div class="comment__text">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-                    </div>
-                    <div class="buttons">
-                        <div class="comment__modify">
-                            Modifier
-                        </div>
-                        <div class="comment__delete">
-                            Supprimer
-                        </div>
-                    </div> 
-                </div> 
-
-                <div class="new__comment">
-                    <h3>Commenter le post</h3>
-                    <form method="post" name="new_comment" id="new__comment__form">
-                        <textarea name="commentaire" placeholder="Commentez le post !" maxlength="5000" id="new__comment__text"></textarea>
-                        <input type="button" value="Envoyer !" id="send__new__comment">
+                <!--div champ textuel "commenter" - appelé au click sur bouton répondre-->
+                <div v-bind:id="'new__comment__' + post.id" class="new__comment">
+                    <div class="comment_form_header">Commenter le post</div>
+                    <form method="post" name="new_comment" class="new__comment__form">
+                        <textarea v-bind:id="'new__comment__text__' + post.id" name="commentaire" placeholder="Commentez le post !" maxlength="5000" class="new__comment__text"></textarea>
+                        <input type="button" value="Envoyer !" class="comment__button send__new__comment" @click="sendNewComment(post.id)">
                     </form>
-                </div>  
-            </div>     
+                </div>
+                <!--div champ textuel "modifier le message" - appelé au click sur bouton modifier-->
+                <div v-bind:id="'modify__post__' + post.id" class="message__modify__container">
+                    <div class="comment_form_header">Modifier le message</div>
+                    <form method="post" name="modify_message" class="message__modify__form">
+                        <textarea v-bind:id="'message__modify__text__' + post.id" v-model="post.post" type="text" name="modifier" placeholder="Modifier le message" maxlength="5000" class="message__modify__text"></textarea>
+                        <input type="button" value="Modifier" class="comment__button save__modifications" @click="modifyPost(post.id)">
+                    </form>
+                </div>                
+                <!--boucle comments-->
+                <div v-for="comment in commentsOfPost(post.id)" :key="comment.id">
+                    <div class="comment">
+                        <div class="comment__informations">
+                            <div class="comment__username">
+                                <div v-if="comment.user_rights === 'user'">{{ comment.username }}</div>
+                                <div v-if="comment.user_rights === 'admin'" class="admin">{{ comment.username }} (modérateur)</div>
+                            </div>
+                            <div class="comment__date">
+                                <div v-if="comment.user_rights === 'user' && comment.creation_date === comment.last_modified">Posté le : {{ formatCreationDate(comment.creation_date) }}</div>
+                                <div v-if="comment.user_rights === 'user' && comment.creation_date != comment.last_modified">Modifié le : {{ formatCreationDate(comment.last_modified) }}</div>
+                                <div v-if="comment.user_rights === 'admin' && comment.creation_date === comment.last_modified" class="admin">Posté le : {{ formatCreationDate(comment.creation_date) }}</div>
+                                <div v-if="comment.user_rights === 'admin' && comment.creation_date != comment.last_modified" class="admin">Modifié le : {{ formatCreationDate(comment.last_modified) }}</div>
+                            </div>
+                        </div>
+                        <div class="comment__text">{{ comment.comment }}</div>
+                        <div class="comment__buttons">
+                            <div class="comment__modify" @click="displayModifyCommentForm(comment.id)" v-if="userLoggedIn === comment.username || userRights === 'admin'">Modifier</div>
+                            <div class="comment__delete" @click="deleteComment(comment.id)" v-if="userLoggedIn === comment.username || userRights === 'admin'">Supprimer</div>
+                        </div>  
+                    </div>
+                    <!--div champ textuel "modifier le commentaire" - appelé au click sur bouton modifier-->
+                    <div v-bind:id="'modify__comment__' + comment.id" class="comment__modify__container">
+                        <div class="comment_form_header">Modifier le commentaire</div>
+                        <form method="post" name="modify_message" class="message__modify__form">
+                            <textarea v-bind:id="'comment__modify__text__' + comment.id" v-model="comment.comment" type="text" name="modifier" placeholder="Modifier le commentaire" maxlength="5000" class="message__modify__text"></textarea>
+                            <input type="button" value="Modifier" class="comment__button save__modifications" @click="modifyComment(comment.id)">
+                        </form>
+                    </div>                        
+                </div>                     
+            </div>
         </div>
-        -->
     </div>
 </template>
-
 <script>
 export default {
   name: 'MainFeed',
-  methods: {
-      commentPost(id) {
-          console.log('click détecté sur ' + id)
+  data() {
+      return {
+          posts: [],
+          comments: [],
+          userLoggedIn: '',
+          userRights: ''
       }
   },
-  async mounted () {
-                    const token = window.localStorage.getItem('token');
-                    const messagesResponse = await fetch('http://localhost:3000/api/post/feed', {
-                        method: 'GET',
-                        headers: {
-                            Accept: 'application/json',
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`,
-                            }
-                        });
-                    const allPosts = await messagesResponse.json();
-                    const feed = allPosts.feed
-                    console.table(feed);
-                    const userLoggedIn = allPosts.user
-                    const userRights = allPosts.rights.rights
-                    let postContainer = "<h2>Fil d'actualité</h2><div>";
-                    feed.forEach(key => {
-                        let creationDate = new Date(key.creation_date)
-                        const month = creationDate.toLocaleString('default', {month: 'long'})
-                        let formatCreationDate = creationDate.getDate() + ' ' + month + ' ' + creationDate.getFullYear()
-                        let formatCreationTime = creationDate.getHours() + ':' + creationDate.getMinutes()
-                        if (key.user_rights === 'admin') {
-                            if (userLoggedIn === key.username || userRights === 'admin') {
-                                postContainer += '<div class="message__and__comments" id="' + key.id + '">'
-                                + '<div class="message">'
-                                + '<div class="message__informations">'
-                                + '<div class="message__username admin">' + key.username + ' (modérateur)</div>'
-                                + '<div class="message__date admin">Posté le : ' + formatCreationDate + ' à ' + formatCreationTime + '</div>'
-                                + '</div>'
-                                + '<div class="message__text">' + key.post + '</div>'
-                                + '<div class="message__buttons" id="message__buttons__' + key.id + '">'
-                                + '<div class="message__reply id="message__reply__' + key.id + '" onclick="commentPost(' + key.id + ')">Répondre</div>'
-                                + '<div class="message__modify id="message__modify__' + key.id + '">Modifier</div>'
-                                + '<div class="message__delete id="message__delete__' + key.id + '">Supprimer</div>'
-                                + '</div>' 
-                                + '</div>'
-                                + '<div class="new__comment" id="new__comment__' + key.id + '"></div>'
-                                + '<div class="message__comments" id="message__comments__' + key.id + '"></div>'; 
-                            } else {
-                                postContainer += '<div class="message__and__comments" id="' + key.id + '">'
-                                + '<div class="message">'
-                                + '<div class="message__informations">'
-                                + '<div class="message__username admin">' + key.username + ' (modérateur)</div>'
-                                + '<div class="message__date admin">Posté le : ' + formatCreationDate + ' à ' + formatCreationTime + '</div>'
-                                + '</div>'
-                                + '<div class="message__text">' + key.post + '</div>'
-                                + '<div class="message__buttons" id="message__buttons__' + key.id + '">'
-                                + '<div class="message__reply id="message__reply__' + key.id + '">Répondre</div>'
-                                + '</div>' 
-                                + '</div>'
-                                + '<div class="new__comment" id="new__comment__' + key.id + '"></div>'
-                                + '<div class="message__comments" id="message__comments__' + key.id + '"></div>';
-                            }
-                        } else {
-                            if (userLoggedIn === key.username || userRights === 'admin') {
-                                postContainer += '<div class="message__and__comments" id="' + key.id + '">'
-                                + '<div class="message">'
-                                + '<div class="message__informations">'
-                                + '<div class="message__username">' + key.username + '</div>'
-                                + '<div class="message__date">Posté le : ' + formatCreationDate + ' à ' + formatCreationTime + '</div>'
-                                + '</div>'
-                                + '<div class="message__text">' + key.post + '</div>'
-                                + '<div class="message__buttons" id="message__buttons__' + key.id + '">'
-                                + '<div class="message__reply id="message__reply__' + key.id + '" onclick="commentPost(' + key.id + ')">Répondre</div>'
-                                + '<div class="message__modify id="message__modify__' + key.id + '">Modifier</div>'
-                                + '<div class="message__delete id="message__delete__' + key.id + '">Supprimer</div>'
-                                + '</div>' 
-                                + '</div>'
-                                + '<div class="new__comment" id="new__comment__' + key.id + '"></div>'
-                                + '<div class="message__comments" id="message__comments__' + key.id + '"></div>'; 
-                            } else {
-                                postContainer += '<div class="message__and__comments" id="' + key.id + '">'
-                                + '<div class="message">'
-                                + '<div class="message__informations">'
-                                + '<div class="message__username">' + key.username + '</div>'
-                                + '<div class="message__date">Posté le : ' + formatCreationDate + ' à ' + formatCreationTime + '</div>'
-                                + '</div>'
-                                + '<div class="message__text">' + key.post + '</div>'
-                                + '<div class="message__buttons" id="message__buttons__' + key.id + '">'
-                                + '<div class="message__reply id="message__reply__' + key.id + '">Répondre</div>'
-                                + '</div>' 
-                                + '</div>'
-                                + '<div class="new__comment" id="new__comment__' + key.id + '"></div>'
-                                + '<div class="message__comments" id="message__comments__' + key.id + '"></div>';
-                            }
+  methods: {
+      displayCommentForm(id) {
+          let commentFormContainer = document.getElementById('new__comment__' + id)
+          if (window.getComputedStyle(commentFormContainer, null).display === 'none') {
+              commentFormContainer.style.display = 'block'
+          } else {
+              commentFormContainer.style.display = 'none'
+          }
+      },
+      displayModifyPostForm(id) {
+          let modifyFormContainer = document.getElementById('modify__post__' + id)
+          if (window.getComputedStyle(modifyFormContainer, null).display === 'none') {
+              modifyFormContainer.style.display = 'block'
+          } else {
+              modifyFormContainer.style.display = 'none'
+          }
+      },      
+      displayModifyCommentForm(id) {
+          let modifyFormContainer = document.getElementById('modify__comment__' + id)
+          if (window.getComputedStyle(modifyFormContainer, null).display === 'none') {
+              modifyFormContainer.style.display = 'block'
+          } else {
+              modifyFormContainer.style.display = 'none'
+          }
+      },         
+      modifyPost(id) {
+          let modifiedPost = document.getElementById('message__modify__text__' + id).value
+          let postId = id
+          const token = window.localStorage.getItem('token')
+          fetch('http://localhost:3000/api/post/modifyPost', {
+              method: 'POST',
+              headers: {
+                  Accept: 'application/json',
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`,
+                  },
+                  body: JSON.stringify({ modifiedPost, postId })
+                  })
+                  .then(function (res) {
+                      if (res.ok) {
+                          return res.json()
+                          .then(function () {
+                              window.location.reload()
+                              })
                         }
-
-                        /*
-                        var replyButton = document.getElementById('message__reply__' + key.id)
-                        var replyContainer = document.getElementById('new__comment__' + key.id)
-                        replyButton.onclick = function() {
-                            replyContainer.innerHTML = '<form method="post" name="new_comment" class="new__comment__form">'
-                            + '<textarea name="commentaire" placeholder="Commentez le post !" maxlength="5000" class="new__comment__text"></textarea>'
-                            + '<input type=button value="Envoyer !" class="send__new__comment">'
-                            + '<input type=button value="Annuler" class="cancel__new__comment">'
+                    })
+      },
+      modifyComment(id) {
+          let modifiedComment = document.getElementById('comment__modify__text__' + id).value
+          let commentId = id
+          const token = window.localStorage.getItem('token')
+          fetch('http://localhost:3000/api/post/modifyComment', {
+              method: 'POST',
+              headers: {
+                  Accept: 'application/json',
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`,
+                  },
+                  body: JSON.stringify({ modifiedComment, commentId })
+                  })
+                  .then(function (res) {
+                      if (res.ok) {
+                          return res.json()
+                          .then(function () {
+                              window.location.reload()
+                              })
                         }
-                        */
-                    });
-                    document.getElementById('feed').innerHTML = postContainer + '</div>' 
-
-                    /**********************************************************************************/
-                    const commentsResponse = await fetch('http://localhost:3000/api/post/getComments', {
-                        method: 'GET',
-                        headers: {
-                            Accept: 'application/json',
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`,
-                            }
-                        });
-                    const allComments = await commentsResponse.json();
-                    const comments = allComments.result
-                    console.table(comments);
-                    let commentsContainer = ''
-                    comments.forEach(key => {
-                        let creationDate = new Date(key.creation_date)
-                        const month = creationDate.toLocaleString('default', {month: 'long'})
-                        let formatCreationDate = creationDate.getDate() + ' ' + month + ' ' + creationDate.getFullYear()
-                        let formatCreationTime = creationDate.getHours() + ':' + creationDate.getMinutes()
-                        if (key.user_rights === 'admin') {
-                            if (userLoggedIn === key.username || userRights === 'admin') {
-                                commentsContainer += '<div class="comment">'
-                                + '<div class="comment__informations">'
-                                + '<div class="comment__username admin">' + key.username + ' (modérateur)</div>'
-                                + '<div hidden class="comment__id">' + key.id + '</div>'
-                                + '<div class="comment__date admin">Posté le : ' + formatCreationDate + ' à ' + formatCreationTime + '</div>'
-                                + '</div>'
-                                + '<div class="comment__text">' + key.comment + '</div>'
-                                + '<div class="comment__buttons" id="comment__buttons__' + key.id + '">'
-                                + '<div class="comment__modify" id="comment__modify__' + key.id + '">Modifier</div>'
-                                + '<div class="comment__delete" id="comment__delete__' + key.id + '">Supprimer</div>'
-                                + '</div>'
-                                + '</div>'
-                            } else {
-                                commentsContainer += '<div class="comment">'
-                                + '<div class="comment__informations">'
-                                + '<div class="comment__username admin">' + key.username + ' (modérateur)</div>'
-                                + '<div hidden class="comment__id">' + key.id + '</div>'
-                                + '<div class="comment__date admin">Posté le : ' + formatCreationDate + ' à ' + formatCreationTime + '</div>'
-                                + '</div>'
-                                + '<div class="comment__text">' + key.comment + '</div>'
-                                + '<div class="comment__buttons" id="comment__buttons__' + key.id + '">'
-                                + '</div>'
-                                + '</div>'
-                            }
-                        } else {
-                            if (userLoggedIn === key.username || userRights === 'admin') {
-                                commentsContainer += '<div class="comment">'
-                                + '<div class="comment__informations">'
-                                + '<div class="comment__username">' + key.username + '</div>'
-                                + '<div hidden class="comment__id">' + key.id + '</div>'
-                                + '<div class="comment__date">Posté le : ' + formatCreationDate + ' à ' + formatCreationTime + '</div>'
-                                + '</div>'
-                                + '<div class="comment__text">' + key.comment + '</div>'
-                                + '<div class="comment__buttons" id="comment__buttons__' + key.id + '">'
-                                + '<div class="comment__modify" id="comment__modify__' + key.id + '">Modifier</div>'
-                                + '<div class="comment__delete" id="comment__delete__' + key.id + '">Supprimer</div>'
-                                + '</div>'
-                                + '</div>'
-                            } else {
-                                commentsContainer += '<div class="comment">'
-                                + '<div class="comment__informations">'
-                                + '<div class="comment__username">' + key.username + '</div>'
-                                + '<div hidden class="comment__id">' + key.id + '</div>'
-                                + '<div class="comment__date">Posté le : ' + formatCreationDate + ' à ' + formatCreationTime + '</div>'
-                                + '</div>'
-                                + '<div class="comment__text">' + key.comment + '</div>'
-                                + '<div class="comment__buttons" id="comment__buttons__' + key.id + '">'
-                                + '</div>'
-                                + '</div>'
-                            }
+                    })
+      },            
+      sendNewComment(id) {
+          let comment = document.getElementById('new__comment__text__' + id).value
+          let commentedPostId = id
+          const token = window.localStorage.getItem('token')
+          fetch('http://localhost:3000/api/post/newComment', {
+              method: 'POST',
+              headers: {
+                  Accept: 'application/json',
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`,
+                  },
+                  body: JSON.stringify({ comment, commentedPostId })
+                  })
+                  .then(function (res) {
+                      if (res.ok) {
+                          return res.json()
+                          .then(function () {
+                              window.location.reload()
+                              })
                         }
-
-                        let postCommented = document.getElementById('message__comments__' + key.post_commented);
-                        postCommented.innerHTML = commentsContainer
-                    });
+                    })
+      },
+      deletePost(id) {
+          let confirmAction = confirm("Voulez-vous vraiment supprimer le message ?")
+          if (confirmAction) {
+              const token = window.localStorage.getItem('token');
+              fetch('http://localhost:3000/api/post/deletePost', {
+                  method: 'POST',
+                  headers: {
+                      Accept: 'application/json',
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${token}`,
+                  },
+                  body: JSON.stringify({ id })
+              })
+              .then(function (res) {
+                  console.log(res)
+                  if (res.ok) {
+                      return res.json()
+                      .then(function () {
+                          window.location.reload()
+                      })
+                  }
+              })
+          }
+      },
+      deleteComment(id) {
+          let confirmAction = confirm("Voulez-vous vraiment supprimer le commentaire ?")
+          if (confirmAction) {
+              const token = window.localStorage.getItem('token');
+              fetch('http://localhost:3000/api/post/deleteComment', {
+                  method: 'POST',
+                  headers: {
+                      Accept: 'application/json',
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${token}`,
+                  },
+                  body: JSON.stringify({ id })
+              })
+              .then(function (res) {
+                  console.log(res)
+                  if (res.ok) {
+                      return res.json()
+                      .then(function () {
+                          window.location.reload()
+                      })
+                  }
+              })
+          }
+      },      
+      formatCreationDate(rawDate) {
+          let creationDate = new Date(rawDate)
+          const month = creationDate.toLocaleString('default', {month: 'long'})
+          let date = creationDate.getDate() + ' ' + month + ' ' + creationDate.getFullYear()
+          let time = String(creationDate.getHours()).padStart(2, '0') + ':' + String(creationDate.getMinutes()).padStart(2, '0')
+          let dateAndTime = date + ' à ' + time
+          return dateAndTime
+      },
+      commentsOfPost(postCommented) {
+          return this.comments.filter(comment => comment.post_commented == postCommented)
+      }
+  },
+    async mounted() {
+    try {
+        console.log('mounted')
+        const token = window.localStorage.getItem('token')
+        const fetchPosts = await fetch("http://localhost:3000/api/post/feed", {
+            method: 'GET',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+                }
+            })
+        const allPosts = await fetchPosts.json()
+        console.log(allPosts)
+        this.posts = allPosts.feed
+        this.userLoggedIn = allPosts.user
+        this.userRights = allPosts.rights.rights
+        console.table(this.posts)
+        console.log(this.userRights)
+        
+        const fetchComments = await fetch("http://localhost:3000/api/post/getComments", {
+            method: 'GET',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        })
+        const getComments = await fetchComments.json()
+        const allComments = getComments.result
+        this.comments = allComments
+        }
+    catch (error) {
+        console.log(error)
+        }
   }
 }
 </script>
@@ -275,7 +296,7 @@ export default {
         color: cyan;
     }
     .message__and__comments {
-
+        
     }
     .message {
         display: inline-block;
@@ -293,7 +314,6 @@ export default {
         min-width: 70%;
         background-color: rgb(241, 241, 241);
         box-shadow: 0px 0px 22px 0px rgba(0,0,0,0.79);
-        padding: 1em;
         margin: 0em;
         border-bottom-left-radius: 1em;
         border-bottom-right-radius: 1em;
@@ -304,8 +324,8 @@ export default {
         min-width: 90%;
         background-color: white;
         box-shadow: 0px 0px 22px 0px rgba(0,0,0,0.79);
-        margin: 0em;
         margin-top: 1em;
+        margin-bottom: 0.75em;
         border-radius: 1em;
     }    
     .message__informations, .comment__informations {
@@ -326,6 +346,10 @@ export default {
     .message__text, .comment__text {
         text-align: justify;
         padding: 1em;
+    }
+    .message__image {
+
+        max-width: 80%;
     }
     .message__buttons, .comment__buttons {
         display: flex;
@@ -353,20 +377,21 @@ export default {
         color: red;
     }    
 /*-----------------------------------------------------------*/
-    h3 {
-
+    .new__comment, .message__modify__container, .comment__modify__container {
+        margin: 1.5em;
+        display: none;
     }
-    .new__comment__form {
+    .new__comment__form, .message__modify__form {
         padding: 1em;
     }
-    .new__comment__text {
+    .new__comment__text, .message__modify__text {
         max-width: 90%;
         min-width: 90%;
         min-height: 4em;
         text-align: left;
         padding: 1em;
     }
-    .new__comment__text::placeholder {
+    .new__comment__text::placeholder, .message__modify__text::placeholder {
         padding-top: 1.5em;
         font-family: Avenir, Helvetica, Arial, sans-serif;
         -webkit-font-smoothing: antialiased;
@@ -378,16 +403,10 @@ export default {
         width: 10em;
         cursor: pointer;
     }
-    .send__new__comment {
+    .send__new__comment, .save__modifications {
         margin-right: 1em;
     }
-    .send__new__comment:hover {
+    .send__new__comment:hover, .save__modifications:hover {
         background-color: rgb(0, 186, 0);
     }
-    .cancel__new__comment {
-        margin-left: 1em;
-    }
-    .cancel__new__comment:hover {
-        background-color: rgba(255, 0, 0, 0.704);
-    }    
 </style>
