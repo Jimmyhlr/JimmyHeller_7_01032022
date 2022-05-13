@@ -105,10 +105,15 @@ export default {
         padding-left: 0;
         padding-right: 0;
         height: auto;
-        width: auto;
-        max-width: 30em;
+        width: 90%;
+        max-width: 20em;
         border-radius: 0.5em;
         border: 0.05em solid black;
         box-shadow: 0;        
+    }
+    @media (max-width: 640px) {
+        #new__post__image {
+            width: 10em;
+        }
     }
 </style>
