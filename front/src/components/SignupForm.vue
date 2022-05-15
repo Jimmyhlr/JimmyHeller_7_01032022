@@ -10,6 +10,7 @@
             <div class="signup__form">
                 <input type="password" name="password_repeat" placeholder="Confirmation du mot de passe" id="signup__form__password_repeat" required>
             </div>
+            <div id="errorMessage"></div>
             <div class="signup__form">
                 <input type="button" value="Inscription" id="form__button" @click="signup()">
             </div>
@@ -40,39 +41,45 @@ export default {
                     })
                     .then(function (res) {
                         console.log(res);
-                        if (res.ok) {
-                            return res.json();
-                        }/*
-                        else if (res.status === 401) {
-                            // ajouter message d'erreur implémenté dans le html
-                        }*/
-                    })
-                    .then(function () {
-                        fetch("http://localhost:3000/api/auth/login", {
-                        method: "POST",
-                        headers: {
-                            Accept: "application/json",
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({ username, password })
-                        })
-                        .then(function (res) {
-                            console.log(res);
-                            if (res.ok) {
+                        if (res.status === 201) {
+                            return res.json()
+                            .then(function () {
+                                fetch("http://localhost:3000/api/auth/login", {
+                                    method: "POST",
+                                    headers: {
+                                        Accept: "application/json",
+                                        "Content-Type": "application/json",
+                                    },
+                                    body: JSON.stringify({ username, password })
+                                })
+                                .then(function (res) {
+                                    console.log(res);
+                                    if (res.ok) {
+                                        return res.json()
+                                        .then(function (resJson) {
+                                            console.log(resJson);
+                                            const token = resJson.token;
+                                            window.localStorage.setItem('token', token);
+                                        })
+                            }
+                            else if (res.status != 201) {
                                 return res.json()
                                 .then(function (resJson) {
-                                    console.log(resJson);
-                                    const token = resJson.token;
-                                    window.localStorage.setItem('token', token);
+                                    document.getElementById('errorMessage').innerHTML = resJson.message
                                 })
-                            }/*
-                            else if (res.status === 401) {
-                                // ajouter message d'erreur implémenté dans le html
-                            }*/
+                            }
                         })
                         .then(function () {
                             window.location.replace("/home");
                         })
+                    })                            
+                        }
+                        else if (res.status != 201) {
+                            return res.json()
+                            .then(function (resJson) {
+                                document.getElementById('errorMessage').innerHTML = resJson.message
+                            })
+                        }
                     })
                     .catch(function (err) {
                         console.error(err);
@@ -116,6 +123,9 @@ export default {
     input:focus::placeholder {
         color: transparent;
     }
+    #errorMessage {
+        color: red
+    }    
     #form__button {
         color: white;
         background-color: rgb(0, 12, 78);

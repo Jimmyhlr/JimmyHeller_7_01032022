@@ -5,52 +5,74 @@ const database = require('../middleware/database');
 
 exports.signup = (req, res, next) => {
     database.query(
-      `SELECT * FROM user WHERE LOWER(username) = LOWER(:username);`,
-      {
-        username: req.body.username
-      },
+      `SELECT * FROM user WHERE LOWER(username) = LOWER(?);`, [
+        req.body.username
+      ],
       (err, result) => {
-        if (result.length) {
+        if (result.length > 0) {
           return res.status(409).send({
             message: "Ce nom d'utilisateur est déjà pris"
           });
         } else {
-          // le nom d'utilisateur est disponible
-          bcrypt.hash(req.body.password, 10, (err, hash) => {
-            if (err) {
-              return res.status(500).send({
-                message: err
-              });
-            } else {
-              // hache le mdp et ajoute à la bdd
-              database.query(
-                `INSERT INTO user (username, password, registered)
-                VALUES (:username, :hash, now());`, {
-                  username: req.body.username,
-                  hash: hash
-                },
-                (err, result) => {
-                  if (err) {
-                    throw err;
-                    return res.status(400).send({
-                      message: err
+        // le nom d'utilisateur est disponible
+          //le nom d'utilisateur fait moins de 3 caractères
+          if (!req.body.username || req.body.username.length < 3) {
+            return res.status(400).send({
+              message: "Veuillez saisir un nom d'utilisateur avec au moins 3 charactères"
+            });
+          }
+          // le mot de passe fait moins de 6 caractères
+          if (!req.body.password || req.body.password.length < 6) {
+            return res.status(400).send({
+              message: "Veuillez saisir un mot de passe avec au moins 6 charactères"
+            });
+          }
+          // les deux mots de passes saisis ne correspondent pas
+          if (
+            !req.body.password_repeat ||
+            req.body.password != req.body.password_repeat
+          ) {
+            return res.status(400).send({
+              message: "Les deux mots de passe doivent correspondre"
+            });
+          }
+          if (req.body.username.length >= 3 && req.body.password == req.body.password_repeat) {
+            bcrypt.hash(req.body.password, 10, (err, hash) => {
+              if (err) {
+                return res.status(500).send({
+                  message: err
+                });
+              } else {
+                // hache le mdp et ajoute à la bdd
+                database.query(
+                  `INSERT INTO user (username, password, registered)
+                  VALUES (?, ?, now());`, [
+                    req.body.username,
+                    hash
+                  ],
+                  (err, result) => {
+                    if (err) {
+                      throw err;
+                      return res.status(400).send({
+                        message: err
+                      });
+                    }
+                    const token = jwt.sign({
+                      username: req.body.username
+                    },
+                    'SECRETKEY', {
+                      expiresIn: '7d'
+                    }
+                    );
+                    return res.status(201).send({
+                      message: 'Compte créé !',
+                      token
                     });
                   }
-                  const token = jwt.sign({
-                    username: req.body.username
-                  },
-                  'SECRETKEY', {
-                    expiresIn: '7d'
-                  }
-                  );
-                  return res.status(201).send({
-                    message: 'Compte créé !',
-                    token
-                  });
-                }
-              );
-            }
-          });
+                );
+              }
+            });
+          }
         }
       }
     );
