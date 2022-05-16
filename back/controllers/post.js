@@ -148,9 +148,22 @@ exports.deletePost = (req, res, next) => {
               else { console.log(imageName + ' supprimé') }
             }))
           }
-          return res.status(201).send({
-            message: 'Message supprimé'
-          })
+          database.query(
+            `DELETE FROM comment WHERE post_commented = ?;`, [
+              req.body.id
+            ],
+            (err, result) => {
+              if (err) {
+                throw err;
+                return res.status(400).send({
+                  message: err
+                })
+              }
+              return res.status(201).send({
+                message: 'Message supprimé'
+              })
+            }
+          )
         }
       )
     }
